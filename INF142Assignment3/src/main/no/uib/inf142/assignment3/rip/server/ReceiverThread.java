@@ -44,7 +44,7 @@ public class ReceiverThread implements Runnable {
 			try {
 				packetBuffer.put(packet);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				// TODO Auto-generated catch blocks
 				System.out.println(e.getMessage());
 				e.printStackTrace();
 			}
