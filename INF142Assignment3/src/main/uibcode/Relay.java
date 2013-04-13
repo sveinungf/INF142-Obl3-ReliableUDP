@@ -5,6 +5,7 @@ import java.net.*;
 
 public class Relay {
 
+	@SuppressWarnings("resource")
 	public static void main(String args[]) throws Exception {
 		Buffer queue;
 		queue = new Buffer(300, 10);

@@ -5,6 +5,7 @@ import java.net.*;
 
 public class SimpleRelay {
 
+	@SuppressWarnings("resource")
 	public static void main(String args[]) throws Exception {
 
 		DatagramSocket serverSocket = new DatagramSocket(11111);

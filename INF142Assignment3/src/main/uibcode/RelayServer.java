@@ -3,6 +3,7 @@ package uibcode;
 import java.net.*;
 
 class RelayServer {
+	@SuppressWarnings("resource")
 	public static void main(String args[]) throws Exception {
 
 		DatagramSocket serverSocket = new DatagramSocket(9876);

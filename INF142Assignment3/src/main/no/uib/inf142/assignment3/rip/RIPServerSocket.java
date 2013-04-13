@@ -27,16 +27,3 @@ public class RIPServerSocket {
 	}
 }
 
-// - a constructor that produces a RIPServerSocket object, and which similarly
-// to a TCP ServerSocket constructor assigns the RIPServerSocket to a port
-// number.
-//
-// - a method String receive() that returns a String object received on the
-// connection.
-//
-// - a method close() that closes the connection.
-//
-// - The RIPServerSocket should also notify the user of errors and other
-// situations that can occur (e.g. lost connection, bad data, data out of order
-// (really should not happen), the other party closed connection, or similar),
-// for example by throwing an exception.
