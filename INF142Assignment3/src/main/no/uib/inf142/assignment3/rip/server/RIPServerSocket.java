@@ -3,28 +3,24 @@ package no.uib.inf142.assignment3.rip.server;
 import java.net.DatagramPacket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class RIPServerSocket {
 
+	private BlockingQueue<String> dataBuffer;
 	private ReceiverThread receiver;
 
 	public RIPServerSocket(int port) throws SocketException {
-		receiver = new ReceiverThread(port);
+		BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
+		dataBuffer = new LinkedBlockingQueue<String>();
+		receiver = new ReceiverThread(port, packetBuffer);
+
+		new Thread(receiver).start();
 	}
 
 	public String receive() {
-		BlockingQueue<DatagramPacket> buffer = receiver.getBuffer();
-		new Thread(receiver).start();
-		
-		try {
-			buffer.take();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		System.out.println("done");
-		
+		// TODO
+
 		return null;
 	}
 
