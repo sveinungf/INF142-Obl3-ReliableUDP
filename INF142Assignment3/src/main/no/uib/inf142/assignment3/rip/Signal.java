@@ -2,7 +2,9 @@ package no.uib.inf142.assignment3.rip;
 
 public enum Signal {
 
-	NONE('0'),
+	REGULAR('R'),
+	PARTIAL('P'),
+
 	SYN('S'),
 	ACK('A'),
 	SYNACK('B'),

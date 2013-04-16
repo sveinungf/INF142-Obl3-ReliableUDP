@@ -24,7 +24,7 @@ public class RIPSocket {
 
 	public void send(final String data) throws IOException {
 		DatagramPacket packet = RIPPacket.makePacket(destination, relay,
-				sequence, 0, Signal.NONE, data);
+				sequence, 0, Signal.REGULAR, data);
 
 		socket.send(packet);
 	}

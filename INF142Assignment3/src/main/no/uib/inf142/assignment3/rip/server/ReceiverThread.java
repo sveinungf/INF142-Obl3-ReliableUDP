@@ -1,17 +1,15 @@
 package no.uib.inf142.assignment3.rip.server;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import javax.swing.plaf.SliderUI;
 
 import no.uib.inf142.assignment3.rip.ProtocolConstants;
 
-public class ReceiverThread implements Runnable {
+public class ReceiverThread implements Closeable, Runnable {
 
 	private boolean receiving;
 	private BlockingQueue<DatagramPacket> packetBuffer;
@@ -27,7 +25,7 @@ public class ReceiverThread implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("ready to receive");
+		System.out.println("receiver: ready");
 
 		while (receiving) {
 			byte[] data = new byte[ProtocolConstants.PACKET_LENGTH];
@@ -35,20 +33,21 @@ public class ReceiverThread implements Runnable {
 
 			try {
 				socket.receive(packet);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				System.out.println(e.getMessage());
-				e.printStackTrace();
-			}
+				System.out.println("receiver: received something");
 
-			try {
 				packetBuffer.put(packet);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch blocks
+				System.out.println("receiver: buffered packet");
+			} catch (IOException | InterruptedException e) {
+				receiving = false;
 				System.out.println(e.getMessage());
-				e.printStackTrace();
 			}
 		}
+		
+		System.out.println("receiver: done");
 	}
 
+	@Override
+	public void close() throws IOException {
+		socket.close();
+	}
 }

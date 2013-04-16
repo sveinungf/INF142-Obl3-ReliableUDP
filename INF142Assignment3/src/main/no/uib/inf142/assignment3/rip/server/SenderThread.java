@@ -1,11 +1,14 @@
 package no.uib.inf142.assignment3.rip.server;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
-public class SenderThread implements Runnable {
+public class SenderThread implements Closeable, Runnable {
 
 	private boolean receiving;
 	private BlockingQueue<DatagramPacket> packetBuffer;
@@ -13,38 +16,56 @@ public class SenderThread implements Runnable {
 	private DatagramSocket socket;
 	private StringBuilder stringBuilder;
 
-	public SenderThread(int port, BlockingQueue<DatagramPacket> packetBuffer, BlockingQueue<String> dataBuffer)
-			throws SocketException {
+	public SenderThread(BlockingQueue<DatagramPacket> packetBuffer,
+			BlockingQueue<String> dataBuffer) throws SocketException {
 
 		receiving = true;
 		this.packetBuffer = packetBuffer;
 		this.dataBuffer = dataBuffer;
-		socket = new DatagramSocket(port);
+		socket = new DatagramSocket();
 		stringBuilder = new StringBuilder();
 	}
 
 	@Override
 	public void run() {
+		System.out.println("sender: ready");
+
 		while (receiving) {
 			try {
 				DatagramPacket packet = packetBuffer.take();
+
+				System.out.println("sender: got a packet");
 				byte[] byteData = packet.getData();
 				String data = new String(byteData, 0, packet.getLength());
+				InetAddress relayAddress = packet.getAddress();
+				int relayPort = packet.getPort();
+
+				System.out.println("sender: packet from "
+						+ relayAddress.getHostAddress() + ":" + relayPort);
 				// check checksum
 				// send ACK
 				// check if data complete
 				boolean dataComplete = true;
 				stringBuilder.append(data);
-				
+
 				if (dataComplete) {
 					dataBuffer.put(stringBuilder.toString());
 					receiving = false;
+
+					System.out.println("sender: buffered data");
 				}
 			} catch (InterruptedException e) {
 				System.out.println(e.getMessage());
-				e.printStackTrace();
+				receiving = false;
 			}
 		}
+		
+		System.out.println("sender: done");
+	}
+
+	@Override
+	public void close() throws IOException {
+		socket.close();
 	}
 
 }
