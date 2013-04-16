@@ -15,12 +15,12 @@ public class ReceiverThread implements Closeable, Runnable {
 	private BlockingQueue<DatagramPacket> packetBuffer;
 	private DatagramSocket socket;
 
-	public ReceiverThread(int port, BlockingQueue<DatagramPacket> packetBuffer)
-			throws SocketException {
+	public ReceiverThread(DatagramSocket socket,
+			BlockingQueue<DatagramPacket> packetBuffer) {
 
 		receiving = true;
 		this.packetBuffer = packetBuffer;
-		socket = new DatagramSocket(port);
+		this.socket = socket;
 	}
 
 	@Override
@@ -42,12 +42,12 @@ public class ReceiverThread implements Closeable, Runnable {
 				System.out.println(e.getMessage());
 			}
 		}
-		
+
 		System.out.println("receiver: done");
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		socket.close();
 	}
 }

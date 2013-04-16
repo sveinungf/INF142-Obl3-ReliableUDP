@@ -1,5 +1,6 @@
 package no.uib.inf142.assignment3.rip.server;
 
+import java.io.IOException;
 import java.net.SocketException;
 
 public class ServerMain {
@@ -11,9 +12,10 @@ public class ServerMain {
 		try {
 			RIPServerSocket server = new RIPServerSocket(54322);
 			String data = server.receive();
+			server.close();
 			
 			System.out.println("main received: " + data);
-		} catch (SocketException e) {
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

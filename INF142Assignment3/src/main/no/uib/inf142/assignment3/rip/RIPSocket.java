@@ -23,10 +23,10 @@ public class RIPSocket {
 	}
 
 	public void send(final String data) throws IOException {
-		DatagramPacket packet = RIPPacket.makePacket(destination, relay,
-				sequence, 0, Signal.REGULAR, data);
+//		DatagramPacket packet = RIPPacket.makePacket(destination, relay,
+//				sequence, 0, Signal.REGULAR, data);
 
-		socket.send(packet);
+//		socket.send(packet);
 	}
 
 	public void close() {
