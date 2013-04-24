@@ -3,6 +3,7 @@ package no.uib.inf142.assignment3.rip.common;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.List;
 
 import no.uib.inf142.assignment3.rip.ProtocolConstants;
@@ -45,22 +46,9 @@ public class RIPPacket {
 		this.ack = ack;
 	}
 
-	public static String buildDelimitedString(String... values) {
-		StringBuilder sb = new StringBuilder();
+	public List<DatagramPacket> makeDatagramPackets() throws SocketException {
+		List<DatagramPacket> packetList = new ArrayList<DatagramPacket>();
 
-		if (values != null && values.length > 0) {
-			sb.append(values[0]);
-
-			for (int i = 1; i < values.length; ++i) {
-				sb.append(DELIMITER);
-				sb.append(values[i]);
-			}
-		}
-
-		return sb.toString();
-	}
-
-	public List<DatagramPacket> makeDatagramPackets() {
 		String ip = finalDestination.getAddress().getHostAddress();
 		String port = "" + finalDestination.getPort();
 
@@ -72,9 +60,34 @@ public class RIPPacket {
 		byte[] headerData = header.getBytes();
 		int spaceLeft = ProtocolConstants.PACKET_LENGTH - headerData.length
 				- maxSignalSpace;
-		// make checksum
 
-		return null;
+		System.out.println(spaceLeft);
+
+		String dataLeft = data;
+		boolean done = false;
+
+		while (!done) {
+			String packetData;
+			String signal;
+
+			if (dataLeft.length() > spaceLeft) {
+				packetData = dataLeft.substring(0, spaceLeft);
+				dataLeft = dataLeft.substring(spaceLeft);
+				signal = Signal.PARTIAL.getString();
+			} else {
+				packetData = dataLeft;
+				signal = Signal.REGULAR.getString();
+				done = true;
+			}
+			// make checksum
+			String payload = buildDelimitedString(header, signal, packetData);
+			byte[] byteData = payload.getBytes();
+			DatagramPacket packet = new DatagramPacket(byteData,
+					byteData.length, destination);
+			packetList.add(packet);
+		}
+
+		return packetList;
 	}
 
 	public static DatagramPacket makePacket(InetSocketAddress dest,
@@ -109,5 +122,9 @@ public class RIPPacket {
 				data);
 
 		return makePacket(dest, finalDest, signal, payload);
+	}
+
+	public static String buildDelimitedString(String... values) {
+		return RIPUtils.buildDelimitedString(DELIMITER, values);
 	}
 }
