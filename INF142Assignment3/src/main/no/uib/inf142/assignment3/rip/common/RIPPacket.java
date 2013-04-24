@@ -8,6 +8,7 @@ import java.util.List;
 
 import no.uib.inf142.assignment3.rip.ProtocolConstants;
 import no.uib.inf142.assignment3.rip.Signal;
+import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPPacket {
 
@@ -46,7 +47,8 @@ public class RIPPacket {
 		this.ack = ack;
 	}
 
-	public List<DatagramPacket> makeDatagramPackets() throws SocketException {
+	public List<DatagramPacket> makeDatagramPackets() throws SocketException,
+			TooShortPacketLengthException {
 		List<DatagramPacket> packetList = new ArrayList<DatagramPacket>();
 
 		String ip = finalDestination.getAddress().getHostAddress();
@@ -61,7 +63,12 @@ public class RIPPacket {
 		int spaceLeft = ProtocolConstants.PACKET_LENGTH - headerData.length
 				- maxSignalSpace;
 
-		System.out.println(spaceLeft);
+		System.out.println("space left: " + spaceLeft);
+
+		if (spaceLeft <= 0) {
+			throw new TooShortPacketLengthException("Packet length "
+					+ ProtocolConstants.PACKET_LENGTH + " too short");
+		}
 
 		String dataLeft = data;
 		boolean done = false;

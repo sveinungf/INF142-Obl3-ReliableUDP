@@ -11,6 +11,7 @@ import java.util.List;
 
 import no.uib.inf142.assignment3.rip.Signal;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
+import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class ServerMain {
 
@@ -21,30 +22,30 @@ public class ServerMain {
 		InetSocketAddress address;
 		try {
 			address = new InetSocketAddress("localhost", 12334);
-			RIPPacket rippacket = new RIPPacket(address, address, Signal.REGULAR, 0, 0, "abcdefghijklmnopqrstuvwxyz");
-			
+			RIPPacket rippacket = new RIPPacket(address, address,
+					Signal.REGULAR, 0, 0, "abcdefghijklmnopqrstuvwxyz");
+
 			List<DatagramPacket> list = rippacket.makeDatagramPackets();
 			
 			for (DatagramPacket p : list) {
 				String data = new String(p.getData(), 0, p.getLength());
 				System.out.println(data);
 			}
-		} catch (SocketException e) {
+		} catch (SocketException | TooShortPacketLengthException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-//		try {
-//			RIPServerSocket server = new RIPServerSocket(54322);
-//			String data = server.receive();
-//			server.close();
-//			
-//			System.out.println("main received: " + data);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+
+		// try {
+		// RIPServerSocket server = new RIPServerSocket(54322);
+		// String data = server.receive();
+		// server.close();
+		//
+		// System.out.println("main received: " + data);
+		// } catch (IOException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 	}
 
 }
