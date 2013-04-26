@@ -26,15 +26,6 @@ public class SenderThread implements Closeable, Runnable {
 		this.dataBuffer = dataBuffer;
 		this.socket = socket;
 		stringBuilder = new StringBuilder();
-		
-		handshake();
-	}
-
-	private void handshake() throws IOException {
-		byte[] byteData = new byte[ProtocolConstants.PACKET_LENGTH];
-		DatagramPacket syn = new DatagramPacket(byteData, byteData.length);
-		socket.receive(syn);
-		System.out.println("sender: received syn");
 	}
 	
 	@Override
@@ -53,9 +44,9 @@ public class SenderThread implements Closeable, Runnable {
 
 				System.out.println("sender: packet from "
 						+ relayAddress.getHostAddress() + ":" + relayPort);
-				// check checksum
-				// send ACK
-				// check if data complete
+				//TODO check checksum, then check seqnum, then send ACK
+
+				//TODO check if data complete
 				boolean dataComplete = true;
 				stringBuilder.append(data);
 
