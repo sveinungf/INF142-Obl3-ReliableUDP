@@ -1,6 +1,6 @@
 package no.uib.inf142.assignment3.rip.common;
 
-public class RIPUtils {
+public class PacketUtils {
 
 	public static String buildDelimitedString(String delimiter,
 			String... values) {

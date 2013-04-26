@@ -1,16 +1,11 @@
 package no.uib.inf142.assignment3.rip.server;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.List;
 
-import no.uib.inf142.assignment3.rip.Signal;
-import no.uib.inf142.assignment3.rip.common.RIPPacket;
+import no.uib.inf142.assignment3.rip.client.RIPPacketGenerator;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class ServerMain {
@@ -22,11 +17,12 @@ public class ServerMain {
 		InetSocketAddress address;
 		try {
 			address = new InetSocketAddress("localhost", 12334);
-			RIPPacket rippacket = new RIPPacket(address, address,
-					Signal.REGULAR, 0, 0, "abcdefghijklmnopqrstuvwxyz");
+			RIPPacketGenerator packetGen = new RIPPacketGenerator(address,
+					address);
 
-			List<DatagramPacket> list = rippacket.makeDatagramPackets();
-			
+			String string = "abcdefghijklmnopqrstuvwxyz";
+			List<DatagramPacket> list = packetGen.makePackets(string);
+
 			for (DatagramPacket p : list) {
 				String data = new String(p.getData(), 0, p.getLength());
 				System.out.println(data);
