@@ -1,4 +1,4 @@
-package no.uib.inf142.assignment3.rip;
+package no.uib.inf142.assignment3.rip.common;
 
 public enum Signal {
 

@@ -37,7 +37,9 @@ public class ServerMain {
 //			e.printStackTrace();
 //		}
 		
-		System.out.println(PacketUtils.makeChecksum("teststring"));
+		System.out.println(PacketUtils.calculateMD5("teststring"));
+		System.out.println(PacketUtils.calculateMD5("asdf"));
+		System.out.println(PacketUtils.calculateMD5("teststring"));
 
 		// try {
 		// RIPServerSocket server = new RIPServerSocket(54322);

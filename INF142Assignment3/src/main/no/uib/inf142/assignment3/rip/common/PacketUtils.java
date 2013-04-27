@@ -1,9 +1,12 @@
 package no.uib.inf142.assignment3.rip.common;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class PacketUtils {
+
+	public static final int HEXADECIMAL = 16;
 
 	public static String buildDelimitedString(String delimiter,
 			String... values) {
@@ -22,17 +25,22 @@ public class PacketUtils {
 		return sb.toString();
 	}
 
-	public static String makeChecksum(String data) {
-		String checksum;
+	public static String calculateMD5(String data) {
+		String checksum = "";
 
 		try {
 			MessageDigest md = MessageDigest.getInstance("md5");
-			md.update(data.getBytes());
-			checksum = Integer.toHexString(md.digest()[0]);
+			byte[] digest = md.digest(data.getBytes());
+			BigInteger number = new BigInteger(1, digest);
+			checksum = number.toString(HEXADECIMAL);
 		} catch (NoSuchAlgorithmException e) {
-			checksum = "";
 		}
 
 		return checksum;
+	}
+
+	public static String getChecksum(String data) {
+		String md5 = calculateMD5(data);
+		return md5.substring(0, ProtocolConstants.CHECKSUM_LENGTH);
 	}
 }

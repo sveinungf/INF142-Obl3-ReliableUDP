@@ -7,9 +7,9 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
-import no.uib.inf142.assignment3.rip.ProtocolConstants;
-import no.uib.inf142.assignment3.rip.Signal;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
+import no.uib.inf142.assignment3.rip.common.ProtocolConstants;
+import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPPacketGenerator {
