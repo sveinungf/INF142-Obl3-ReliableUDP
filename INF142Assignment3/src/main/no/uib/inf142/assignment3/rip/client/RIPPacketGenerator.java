@@ -13,8 +13,6 @@ import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPPacketGenerator {
 
-	private static final String DELIMITER = ";";
-
 	private InetSocketAddress finalDestination;
 	private InetSocketAddress relay;
 	private int nextSequence;
@@ -59,7 +57,7 @@ public class RIPPacketGenerator {
 		List<DatagramPacket> packetList = new ArrayList<DatagramPacket>();
 
 		int maxPacketLength = Protocol.PACKET_LENGTH;
-		int delimiterLength = DELIMITER.length();
+		int delimiterLength = Protocol.PACKET_DELIMITER.length();
 
 		int signalSpace = Signal.PARTIAL.getString().length() + delimiterLength;
 		int checksumSpace = delimiterLength + Protocol.CHECKSUM_LENGTH;
@@ -107,6 +105,7 @@ public class RIPPacketGenerator {
 	}
 
 	private static String buildDelimitedString(String... values) {
-		return PacketUtils.buildDelimitedString(DELIMITER, values);
+		return PacketUtils.buildDelimitedString(Protocol.PACKET_DELIMITER,
+				values);
 	}
 }
