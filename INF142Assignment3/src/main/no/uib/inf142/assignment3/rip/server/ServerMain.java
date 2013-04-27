@@ -19,27 +19,24 @@ public class ServerMain {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		InetSocketAddress address;
-//		try {
-//			address = new InetSocketAddress("localhost", 12334);
-//			RIPPacketGenerator packetGen = new RIPPacketGenerator(address,
-//					address);
-//
-//			String string = "abcdefghijklmnopqrstuvwxyz";
-//			List<DatagramPacket> list = packetGen.makePackets(string);
-//
-//			for (DatagramPacket p : list) {
-//				String data = new String(p.getData(), 0, p.getLength());
-//				System.out.println(data);
-//			}
-//		} catch (SocketException | TooShortPacketLengthException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-		System.out.println(PacketUtils.calculateMD5("teststring"));
-		System.out.println(PacketUtils.calculateMD5("asdf"));
-		System.out.println(PacketUtils.calculateMD5("teststring"));
+		InetSocketAddress address;
+		try {
+			address = new InetSocketAddress("localhost", 12334);
+			RIPPacketGenerator packetGen = new RIPPacketGenerator(address,
+					address);
+
+			String string = "abcdefghijklmnopqrstuvwxyz";
+			List<DatagramPacket> list = packetGen.makePackets(string);
+
+			for (DatagramPacket p : list) {
+				String data = new String(p.getData(), 0, p.getLength());
+				System.out.println(data);
+			}
+		} catch (SocketException | TooShortPacketLengthException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 
 		// try {
 		// RIPServerSocket server = new RIPServerSocket(54322);
