@@ -50,6 +50,6 @@ public class PacketUtilsTest {
 		String string = "data";
 		String checksum = PacketUtils.getChecksum(string);
 
-		assertEquals(ProtocolConstants.CHECKSUM_LENGTH, checksum.length());
+		assertEquals(Protocol.CHECKSUM_LENGTH, checksum.length());
 	}
 }

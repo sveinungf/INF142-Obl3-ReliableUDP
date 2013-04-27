@@ -41,6 +41,6 @@ public class PacketUtils {
 
 	public static String getChecksum(String data) {
 		String md5 = calculateMD5(data);
-		return md5.substring(0, ProtocolConstants.CHECKSUM_LENGTH);
+		return md5.substring(0, Protocol.CHECKSUM_LENGTH);
 	}
 }

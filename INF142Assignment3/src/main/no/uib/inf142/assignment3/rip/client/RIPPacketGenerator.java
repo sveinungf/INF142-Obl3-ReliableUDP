@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
-import no.uib.inf142.assignment3.rip.common.ProtocolConstants;
+import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
@@ -39,7 +39,7 @@ public class RIPPacketGenerator {
 	public DatagramPacket makeSignalPacket(final Signal signal)
 			throws TooShortPacketLengthException, SocketException {
 
-		int maxPacketLength = ProtocolConstants.PACKET_LENGTH;
+		int maxPacketLength = Protocol.PACKET_LENGTH;
 		String payload = buildHeaderString();
 
 		byte[] byteData = payload.getBytes();
@@ -58,11 +58,11 @@ public class RIPPacketGenerator {
 
 		List<DatagramPacket> packetList = new ArrayList<DatagramPacket>();
 
-		int maxPacketLength = ProtocolConstants.PACKET_LENGTH;
+		int maxPacketLength = Protocol.PACKET_LENGTH;
 		int delimiterLength = DELIMITER.length();
 
 		int signalSpace = Signal.PARTIAL.getString().length() + delimiterLength;
-		int checksumSpace = delimiterLength + ProtocolConstants.CHECKSUM_LENGTH;
+		int checksumSpace = delimiterLength + Protocol.CHECKSUM_LENGTH;
 
 		int spaceLeft = maxPacketLength - signalSpace - checksumSpace
 				- delimiterLength;

@@ -37,12 +37,13 @@ public class RIPSocket implements Closeable {
 		BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
 		packetMaker = new PacketMakerThread(dataBuffer, packetBuffer, server,
 				relay);
-		
+
 		BlockingQueue<DatagramPacket> window = new LinkedBlockingQueue<DatagramPacket>();
 
 		packetSender = new PacketSenderThread(socket, window, packetBuffer);
 
 		new Thread(packetMaker).start();
+		new Thread(packetSender).start();
 	}
 
 	/**

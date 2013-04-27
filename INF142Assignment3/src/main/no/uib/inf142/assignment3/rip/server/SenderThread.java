@@ -7,7 +7,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.BlockingQueue;
 
-import no.uib.inf142.assignment3.rip.common.ProtocolConstants;
+import no.uib.inf142.assignment3.rip.common.Protocol;
 
 public class SenderThread implements Closeable, Runnable {
 
