@@ -5,20 +5,22 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentMap;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
+import no.uib.inf142.assignment3.rip.common.RIPPacket;
 
 public class PacketSenderThread implements Closeable, Runnable {
 
 	private boolean receiving;
-	private BlockingQueue<DatagramPacket> window;
-	private BlockingQueue<DatagramPacket> packetBuffer;
+	private BlockingQueue<RIPPacket> packetBuffer;
+	private BlockingQueue<RIPPacket> window;
 	private DatagramSocket socket;
 	private SimpleTimer timer;
 
 	public PacketSenderThread(DatagramSocket socket,
-			BlockingQueue<DatagramPacket> window,
-			BlockingQueue<DatagramPacket> packetBuffer) {
+			BlockingQueue<RIPPacket> packetBuffer,
+			BlockingQueue<RIPPacket> window) {
 
 		receiving = true;
 		this.window = window;
@@ -39,23 +41,25 @@ public class PacketSenderThread implements Closeable, Runnable {
 
 			if (timeout) {
 				try {
-					for (DatagramPacket packet : window) {
-						socket.send(packet);
+					for (RIPPacket ripPacket : window) {
+						socket.send(ripPacket.getDatagramPacket());
 					}
 				} catch (IOException e) {
+					// TODO
 				}
 
 				timer.restart();
 			} else if (!packetBuffer.isEmpty() && !windowFull) {
 				try {
-					DatagramPacket packet = packetBuffer.take();
+					RIPPacket ripPacket = packetBuffer.take();
+					// DatagramPacket packet = packetBuffer.take();
 
 					if (window.isEmpty()) {
 						timer.restart();
 					}
 
-					window.put(packet);
-					socket.send(packet);
+					window.put(ripPacket);
+					socket.send(ripPacket.getDatagramPacket());
 
 					System.out.println("packetsender: sent a packet");
 

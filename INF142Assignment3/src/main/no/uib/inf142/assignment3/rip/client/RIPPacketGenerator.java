@@ -8,6 +8,7 @@ import java.util.List;
 
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
+import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
@@ -18,18 +19,17 @@ public class RIPPacketGenerator {
 	private int nextSequence;
 
 	public RIPPacketGenerator(InetSocketAddress finalDestination,
-			InetSocketAddress relay) {
+			InetSocketAddress relay, int startingSequence) {
 
 		this.finalDestination = finalDestination;
 		this.relay = relay;
-		nextSequence = 0;
+		nextSequence = startingSequence;
 	}
 
 	private String buildHeaderString() {
 		String ip = finalDestination.getAddress().getHostAddress();
 		String port = "" + finalDestination.getPort();
 		String sequence = "" + nextSequence;
-		++nextSequence;
 
 		return buildDelimitedString(ip, port, sequence);
 	}
@@ -51,10 +51,10 @@ public class RIPPacketGenerator {
 		return new DatagramPacket(byteData, dataLength, relay);
 	}
 
-	public List<DatagramPacket> makePackets(final String data)
+	public List<RIPPacket> makePackets(final String data)
 			throws TooShortPacketLengthException, SocketException {
 
-		List<DatagramPacket> packetList = new ArrayList<DatagramPacket>();
+		List<RIPPacket> packetList = new ArrayList<RIPPacket>();
 
 		int maxPacketLength = Protocol.PACKET_LENGTH;
 		int delimiterLength = Protocol.PACKET_DELIMITER.length();
@@ -98,7 +98,11 @@ public class RIPPacketGenerator {
 
 			DatagramPacket packet = new DatagramPacket(byteData,
 					byteData.length, relay);
-			packetList.add(packet);
+
+			RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
+
+			packetList.add(ripPacket);
+			++nextSequence;
 		}
 
 		return packetList;

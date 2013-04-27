@@ -2,25 +2,21 @@ package no.uib.inf142.assignment3.rip.common;
 
 public enum Signal {
 
-	REGULAR('R'),
-	PARTIAL('P'),
+	REGULAR("R"),
+	PARTIAL("P"),
 
-	SYN('S'),
-	ACK('A'),
-	SYNACK('B'),
-	FIN('F');
+	SYN("S"),
+	ACK("A"),
+	SYNACK("B"),
+	FIN("F");
 
-	private char c;
+	private String string;
 
-	private Signal(char c) {
-		this.c = c;
-	}
-
-	public char getChar() {
-		return c;
+	private Signal(String string) {
+		this.string = string;
 	}
 
 	public String getString() {
-		return "" + c;
+		return string;
 	}
 }

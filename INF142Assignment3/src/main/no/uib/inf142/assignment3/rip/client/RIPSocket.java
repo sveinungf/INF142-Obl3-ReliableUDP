@@ -1,18 +1,19 @@
 package no.uib.inf142.assignment3.rip.client;
 
 import java.io.Closeable;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.RIPPacket;
+
 public class RIPSocket implements Closeable {
 
 	private BlockingQueue<String> dataBuffer;
 	private DatagramSocket socket;
+	private ACKReceiverThread ackReceiver;
 	private PacketMakerThread packetMaker;
 	private PacketSenderThread packetSender;
 
@@ -31,17 +32,24 @@ public class RIPSocket implements Closeable {
 	public RIPSocket(InetSocketAddress server, InetSocketAddress relay)
 			throws SocketException {
 
+		int startingSequence = 0;
 		dataBuffer = new LinkedBlockingQueue<String>();
 		socket = new DatagramSocket();
 
-		BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
-		packetMaker = new PacketMakerThread(dataBuffer, packetBuffer, server,
-				relay);
+		// BlockingQueue<DatagramPacket> packetBuffer = new
+		// LinkedBlockingQueue<DatagramPacket>();
+		BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
+		// BlockingQueue<DatagramPacket> window = new
+		// LinkedBlockingQueue<DatagramPacket>();
+		BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-		BlockingQueue<DatagramPacket> window = new LinkedBlockingQueue<DatagramPacket>();
+		ackReceiver = new ACKReceiverThread(window, socket, startingSequence);
+		packetMaker = new PacketMakerThread(dataBuffer, packetBuffer, server,
+				relay, startingSequence);
 
 		packetSender = new PacketSenderThread(socket, window, packetBuffer);
 
+		new Thread(ackReceiver).start();
 		new Thread(packetMaker).start();
 		new Thread(packetSender).start();
 	}
