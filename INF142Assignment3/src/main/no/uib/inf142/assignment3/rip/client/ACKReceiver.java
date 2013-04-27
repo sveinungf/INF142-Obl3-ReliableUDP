@@ -12,14 +12,14 @@ import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 
-public class ACKReceiverThread implements Runnable {
+public class ACKReceiver implements Runnable {
 
 	private boolean active;
 	private int expectedSequence;
 	private BlockingQueue<RIPPacket> window;
 	private DatagramSocket socket;
 
-	public ACKReceiverThread(BlockingQueue<RIPPacket> window,
+	public ACKReceiver(BlockingQueue<RIPPacket> window,
 			DatagramSocket socket, int startingSequence) {
 
 		active = true;
@@ -59,9 +59,9 @@ public class ACKReceiverThread implements Runnable {
 						signalString);
 
 				if (signal == null) {
-					throw new InvalidPacketException("Illegal signal");
+					throw new InvalidPacketException("Illegal signal in packet");
 				} else if (signal != Signal.ACK) {
-					throw new InvalidPacketException("Invalid signal");
+					throw new InvalidPacketException("Invalid signal in packet");
 				}
 
 				int sequence = Integer.parseInt(sequenceString);
@@ -82,7 +82,8 @@ public class ACKReceiverThread implements Runnable {
 					expectedSequence = sequence + 1;
 				}
 
-			} catch (InvalidPacketException | NumberFormatException | IOException e) {
+			} catch (InvalidPacketException | NumberFormatException
+					| IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

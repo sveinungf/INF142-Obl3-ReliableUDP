@@ -13,9 +13,9 @@ public class RIPSocket implements Closeable {
 
 	private BlockingQueue<String> dataBuffer;
 	private DatagramSocket socket;
-	private ACKReceiverThread ackReceiver;
-	private PacketMakerThread packetMaker;
-	private PacketSenderThread packetSender;
+	private ACKReceiver ackReceiver;
+	private PacketMaker packetMaker;
+	private PacketSender packetSender;
 
 	/**
 	 * Constructs a {@code RIPSocket} object, and which similarly to a
@@ -39,11 +39,11 @@ public class RIPSocket implements Closeable {
 		BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
 		BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-		ackReceiver = new ACKReceiverThread(window, socket, startingSequence);
-		packetMaker = new PacketMakerThread(dataBuffer, packetBuffer, server,
+		ackReceiver = new ACKReceiver(window, socket, startingSequence);
+		packetMaker = new PacketMaker(dataBuffer, packetBuffer, server,
 				relay, startingSequence);
 
-		packetSender = new PacketSenderThread(socket, window, packetBuffer);
+		packetSender = new PacketSender(socket, window, packetBuffer);
 
 		new Thread(ackReceiver).start();
 		new Thread(packetMaker).start();

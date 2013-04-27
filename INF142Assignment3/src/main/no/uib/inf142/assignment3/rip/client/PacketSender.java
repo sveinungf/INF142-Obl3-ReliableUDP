@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 
-public class PacketSenderThread implements Closeable, Runnable {
+public class PacketSender implements Closeable, Runnable {
 
 	private boolean receiving;
 	private BlockingQueue<RIPPacket> packetBuffer;
@@ -16,7 +16,7 @@ public class PacketSenderThread implements Closeable, Runnable {
 	private DatagramSocket socket;
 	private SimpleTimer timer;
 
-	public PacketSenderThread(DatagramSocket socket,
+	public PacketSender(DatagramSocket socket,
 			BlockingQueue<RIPPacket> packetBuffer,
 			BlockingQueue<RIPPacket> window) {
 
