@@ -3,6 +3,7 @@ package no.uib.inf142.assignment3.rip.client;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +87,9 @@ public class RIPPacketGenerator {
 				signal = Signal.REGULAR.getString();
 				done = true;
 			}
-			//TODO generate checksum
+
+			
+			// TODO generate checksum
 			String checksum = "X";
 
 			String payload = buildDelimitedString(header, signal, checksum,
