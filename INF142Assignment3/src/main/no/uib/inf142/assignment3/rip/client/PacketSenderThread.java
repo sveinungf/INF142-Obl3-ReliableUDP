@@ -12,34 +12,35 @@ public class PacketSenderThread implements Closeable, Runnable {
 
 	private boolean receiving;
 	private BlockingQueue<DatagramPacket> window;
-	private BlockingQueue<String> dataBuffer;
+	private BlockingQueue<DatagramPacket> packetBuffer;
 	private DatagramSocket socket;
 
 	public PacketSenderThread(DatagramSocket socket,
 			BlockingQueue<DatagramPacket> window,
-			BlockingQueue<String> dataBuffer) throws IOException {
+			BlockingQueue<DatagramPacket> packetBuffer) {
 
 		receiving = true;
 		this.window = window;
-		this.dataBuffer = dataBuffer;
+		this.packetBuffer = packetBuffer;
 		this.socket = socket;
 	}
 
 	@Override
 	public void run() {
+		int maxWindowSize = ProtocolConstants.WINDOW_SIZE;
 		System.out.println("packetsender: ready");
 
 		while (receiving) {
 			// TODO implement timeout
 			boolean timeout = false;
-			boolean windowFull = window.size() > ProtocolConstants.WINDOW_SIZE;
+			boolean windowFull = window.size() > maxWindowSize;
 
 			if (timeout) {
 				// TODO resend all packets in window
 				// TODO restart timer
-			} else if (!dataBuffer.isEmpty() && !windowFull) {
+			} else if (!packetBuffer.isEmpty() && !windowFull) {
 				try {
-					String data = dataBuffer.take();
+					DatagramPacket packet = packetBuffer.take();
 
 					if (window.isEmpty()) {
 						// TODO restart timer
@@ -61,6 +62,7 @@ public class PacketSenderThread implements Closeable, Runnable {
 
 	@Override
 	public void close() {
+		receiving = false;
 		socket.close();
 	}
 

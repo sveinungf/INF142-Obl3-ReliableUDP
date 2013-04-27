@@ -59,12 +59,13 @@ public class RIPPacketGenerator {
 
 		List<DatagramPacket> packetList = new ArrayList<DatagramPacket>();
 		int maxPacketLength = ProtocolConstants.PACKET_LENGTH;
-		int signalSpace = 2;
-		int checksumSpace = 3;
+		int delimiterLength = DELIMITER.length();
+		int signalSpace = Signal.PARTIAL.getString().length() + delimiterLength;
+		int checksumSpace = ProtocolConstants.CHECKSUM_LENGTH + delimiterLength;
 		String header = makeHeaderString();
 
 		int spaceLeft = maxPacketLength - header.length() - signalSpace
-				- checksumSpace;
+				- checksumSpace - delimiterLength;
 
 		if (spaceLeft <= 0) {
 			throw new TooShortPacketLengthException("Packet length "
@@ -88,7 +89,6 @@ public class RIPPacketGenerator {
 				done = true;
 			}
 
-			
 			// TODO generate checksum
 			String checksum = "X";
 

@@ -1,5 +1,7 @@
 package no.uib.inf142.assignment3.rip.client;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -8,8 +10,9 @@ import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
-public class PacketMakerThread implements Runnable {
+public class PacketMakerThread implements Closeable, Runnable {
 
+	private boolean active;
 	private BlockingQueue<String> dataBuffer;
 	private BlockingQueue<DatagramPacket> packetBuffer;
 	private RIPPacketGenerator packetGen;
@@ -18,6 +21,7 @@ public class PacketMakerThread implements Runnable {
 			BlockingQueue<DatagramPacket> packetBuffer,
 			InetSocketAddress finalDestination, InetSocketAddress relay) {
 
+		active = true;
 		this.dataBuffer = dataBuffer;
 		this.packetBuffer = packetBuffer;
 		packetGen = new RIPPacketGenerator(finalDestination, relay);
@@ -25,19 +29,29 @@ public class PacketMakerThread implements Runnable {
 
 	@Override
 	public void run() {
-		try {
-			String data = dataBuffer.take();
+		while (active) {
+			System.out.println("packetmaker: ready");
 
-			List<DatagramPacket> packetList = packetGen.makePackets(data);
+			try {
+				String data = dataBuffer.take();
+				System.out.println("packetmaker: got some data");
 
-			for (DatagramPacket packet : packetList) {
-				packetBuffer.put(packet);
+				List<DatagramPacket> packetList = packetGen.makePackets(data);
+
+				for (DatagramPacket packet : packetList) {
+					packetBuffer.put(packet);
+					System.out.println("packetmaker: buffered packet");
+				}
+			} catch (InterruptedException | SocketException
+					| TooShortPacketLengthException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (InterruptedException | SocketException
-				| TooShortPacketLengthException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+	}
 
+	@Override
+	public void close() throws IOException {
+		active = false;
 	}
 }
