@@ -36,11 +36,7 @@ public class RIPSocket implements Closeable {
 		dataBuffer = new LinkedBlockingQueue<String>();
 		socket = new DatagramSocket();
 
-		// BlockingQueue<DatagramPacket> packetBuffer = new
-		// LinkedBlockingQueue<DatagramPacket>();
 		BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
-		// BlockingQueue<DatagramPacket> window = new
-		// LinkedBlockingQueue<DatagramPacket>();
 		BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
 		ackReceiver = new ACKReceiverThread(window, socket, startingSequence);

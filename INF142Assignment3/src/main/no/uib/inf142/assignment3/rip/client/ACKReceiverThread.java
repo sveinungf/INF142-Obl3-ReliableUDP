@@ -3,9 +3,7 @@ package no.uib.inf142.assignment3.rip.client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;

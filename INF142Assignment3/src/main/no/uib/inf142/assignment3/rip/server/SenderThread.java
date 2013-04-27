@@ -7,8 +7,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.BlockingQueue;
 
-import no.uib.inf142.assignment3.rip.common.Protocol;
-
 public class SenderThread implements Closeable, Runnable {
 
 	private boolean receiving;
@@ -27,7 +25,7 @@ public class SenderThread implements Closeable, Runnable {
 		this.socket = socket;
 		stringBuilder = new StringBuilder();
 	}
-	
+
 	@Override
 	public void run() {
 		System.out.println("sender: ready");
@@ -44,9 +42,9 @@ public class SenderThread implements Closeable, Runnable {
 
 				System.out.println("sender: packet from "
 						+ relayAddress.getHostAddress() + ":" + relayPort);
-				//TODO check checksum, then check seqnum, then send ACK
+				// TODO check checksum, then check seqnum, then send ACK
 
-				//TODO check if data complete
+				// TODO check if data complete
 				boolean dataComplete = true;
 				stringBuilder.append(data);
 
