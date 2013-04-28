@@ -82,6 +82,24 @@ public class PacketUtilsTest {
 	}
 
 	@Test
+	public void hexToIntAndBack() {
+		String expected = "0000e0c4";
+		int number = PacketUtils.convertFromHexString(expected);
+		String actual = PacketUtils.convertToHexString(number);
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void intToHexAndBack() {
+		int expected = 846205;
+		String hex = PacketUtils.convertToHexString(expected);
+		int actual = PacketUtils.convertFromHexString(hex);
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
 	public void makeSpaces() {
 		int length = 10;
 		String expected = "          ";

@@ -27,7 +27,7 @@ public class RIPPacketGenerator {
 	public DatagramPacket makeACKPacket(int sequence)
 			throws TooShortPacketLengthException {
 
-		String seq = "" + sequence;
+		String seq = PacketUtils.convertToHexString(sequence);
 		String signal = Signal.ACK.getString();
 		String payload = buildDelimitedString(storedAddressHeader, seq, signal);
 
@@ -37,7 +37,7 @@ public class RIPPacketGenerator {
 	public DatagramPacket makeSignalPacket(final Signal signal)
 			throws TooShortPacketLengthException {
 
-		String seq = "" + nextSequence;
+		String seq = PacketUtils.convertToHexString(nextSequence);
 		String payload = buildDelimitedString(storedAddressHeader, seq,
 				signal.getString());
 

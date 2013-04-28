@@ -35,6 +35,10 @@ public class PacketUtils {
 		return String.format("%08x", Integer.valueOf(number));
 	}
 
+	public static int convertFromHexString(String hex) {
+		return Integer.parseInt(hex, HEXADECIMAL);
+	}
+
 	public static String makeSpaces(int length) {
 		return new String(new char[length]).replace('\0', ' ');
 	}

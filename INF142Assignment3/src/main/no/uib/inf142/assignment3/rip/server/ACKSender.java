@@ -70,7 +70,7 @@ public class ACKSender implements Closeable, Runnable {
 				}
 
 				String sequenceString = items[2];
-				int sequence = Integer.parseInt(sequenceString);
+				int sequence = PacketUtils.convertFromHexString(sequenceString);
 
 				InetSocketAddress source = PacketUtils.parseSocketAddress(
 						items[0], items[1]);
@@ -108,7 +108,7 @@ public class ACKSender implements Closeable, Runnable {
 				}
 			} catch (InterruptedException | InvalidPacketException
 					| NumberFormatException e) {
-				System.out.println(e.getMessage());
+				e.printStackTrace();
 				receiving = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block

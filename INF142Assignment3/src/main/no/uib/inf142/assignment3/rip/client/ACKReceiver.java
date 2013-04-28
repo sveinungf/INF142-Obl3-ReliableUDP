@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.Signal;
@@ -67,7 +68,7 @@ public class ACKReceiver implements Runnable {
 					throw new InvalidPacketException("Invalid signal in packet");
 				}
 
-				int sequence = Integer.parseInt(sequenceString);
+				int sequence = PacketUtils.convertFromHexString(sequenceString);
 
 				if (sequence >= expectedSequence) {
 					System.out.println("ACK receiver: got seq >= expected seq");
