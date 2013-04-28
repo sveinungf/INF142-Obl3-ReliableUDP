@@ -48,10 +48,25 @@ public class PacketUtilsTest {
 	@Test
 	public void validChecksumLength() {
 		String string = "data";
-		String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
-				string);
+		String checksum = PacketUtils.getChecksum(3, string);
 
-		assertEquals(Protocol.CHECKSUM_LENGTH, checksum.length());
+		assertEquals(3, checksum.length());
+	}
+
+	@Test
+	public void validChecksum() {
+		String text = "qwertyuiop!";
+		String checksum = PacketUtils.getChecksum(3, text);
+
+		assertTrue(PacketUtils.validChecksum(text, checksum));
+	}
+
+	@Test
+	public void invalidChecksum() {
+		String text = "qwertyuiop!";
+		String checksum = PacketUtils.getChecksum(3, text);
+
+		assertFalse(PacketUtils.validChecksum(text + " ", checksum));
 	}
 
 	@Test
@@ -86,19 +101,19 @@ public class PacketUtilsTest {
 		String expected = "0000e0c4";
 		int number = PacketUtils.convertFromHexString(expected);
 		String actual = PacketUtils.convertToHexString(number);
-		
+
 		assertEquals(expected, actual);
 	}
-	
+
 	@Test
 	public void intToHexAndBack() {
 		int expected = 846205;
 		String hex = PacketUtils.convertToHexString(expected);
 		int actual = PacketUtils.convertFromHexString(hex);
-		
+
 		assertEquals(expected, actual);
 	}
-	
+
 	@Test
 	public void makeSpaces() {
 		int length = 10;

@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
 
@@ -24,6 +25,15 @@ public class ClientMain {
 			RIPSocket ripsocket = new RIPSocket(server, relay);
 			ripsocket.send("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789");
 			//ripsocket.close();
+			Scanner kbd = new Scanner(System.in);
+			
+			String input = "";
+			
+			while (!input.equals("exit")) {
+				input = kbd.nextLine();
+				
+				ripsocket.send(input);
+			}
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}

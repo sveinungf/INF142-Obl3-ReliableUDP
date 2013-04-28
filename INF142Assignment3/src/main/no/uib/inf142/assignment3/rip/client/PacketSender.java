@@ -1,6 +1,7 @@
 package no.uib.inf142.assignment3.rip.client;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.BlockingQueue;
 
@@ -40,6 +41,8 @@ public class PacketSender implements Runnable {
 					for (RIPPacket ripPacket : window) {
 						socket.send(ripPacket.getDatagramPacket());
 					}
+					System.out
+							.println("[PacketSender] Timeout, sent all in window");
 
 					timer.restart();
 				} else if (!packetBuffer.isEmpty() && !windowFull) {
@@ -50,7 +53,13 @@ public class PacketSender implements Runnable {
 					}
 
 					window.put(ripPacket);
-					socket.send(ripPacket.getDatagramPacket());
+
+					DatagramPacket packet = ripPacket.getDatagramPacket();
+					socket.send(packet);
+
+					String data = new String(packet.getData(), 0,
+							packet.getLength());
+					System.out.println("[PacketSender] Sent: \"" + data + "\"");
 				} else {
 					Thread.sleep(Protocol.WAITTIME_IN_MILLIS);
 				}

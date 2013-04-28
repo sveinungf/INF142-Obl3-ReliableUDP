@@ -10,9 +10,10 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
-import no.uib.inf142.assignment3.rip.common.RIPPacketGenerator;
+import no.uib.inf142.assignment3.rip.common.PacketGenerator;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
@@ -21,8 +22,9 @@ import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class ACKSender implements Closeable, Runnable {
 
-	private boolean receiving;
+	private boolean active;
 	private int expectedSequence;
+	private int relayListeningPort;
 	private BlockingQueue<DatagramPacket> packetBuffer;
 	private BlockingQueue<String> dataBuffer;
 	private DatagramSocket socket;
@@ -30,11 +32,12 @@ public class ACKSender implements Closeable, Runnable {
 
 	public ACKSender(DatagramSocket socket,
 			BlockingQueue<DatagramPacket> packetBuffer,
-			BlockingQueue<String> dataBuffer, int startingSequence)
-			throws IOException {
+			BlockingQueue<String> dataBuffer, int relayListeningPort,
+			int startingSequence) throws IOException {
 
-		receiving = true;
+		active = true;
 		expectedSequence = startingSequence;
+		this.relayListeningPort = relayListeningPort;
 		this.packetBuffer = packetBuffer;
 		this.dataBuffer = dataBuffer;
 		this.socket = socket;
@@ -43,44 +46,48 @@ public class ACKSender implements Closeable, Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("ACK sender: ready");
-
-		while (receiving) {
+		while (active) {
 			try {
-				System.out.println("ACK sender: waiting for packet in buffer");
 				DatagramPacket packet = packetBuffer.take();
 
-				System.out.println("ACK sender: got a packet");
-				byte[] byteData = packet.getData();
-				String payload = new String(byteData, 0, packet.getLength());
-
 				InetAddress relayAddress = packet.getAddress();
-				int relayPort = Protocol.RELAY_LISTENING_PORT;
-				InetSocketAddress relay = new InetSocketAddress(relayAddress,
-						relayPort);
+				InetSocketAddress relay = new InetSocketAddress(relayAddress, relayListeningPort);
+				
+				byte[] byteData = packet.getData();
+				String data = new String(byteData, 0, packet.getLength());
 
-				System.out.println("ACK sender: packet from "
-						+ relayAddress.getHostAddress() + ":" + relayPort);
-				// TODO check checksum, then check seqnum, then send ACK
+				String[] items = data.split(Protocol.PACKET_DELIMITER);
 
-				String[] items = payload.split(Protocol.PACKET_DELIMITER);
-				// TODO substitute literal
-				if (items.length < 4) {
+				int datafields = Datafield.values().length + 1;
+				if (items.length < datafields) {
 					throw new InvalidPacketException(
 							"Packet contains too few datafields");
 				}
 
-				String sequenceString = items[2];
+				int lastDelimiter = data.lastIndexOf(Protocol.PACKET_DELIMITER);
+				String toValidate = data.substring(0, lastDelimiter);
+				String checksum = items[Datafield.CHECKSUM.ordinal() + 1];
+				boolean checksumOk = PacketUtils.validChecksum(toValidate,
+						checksum);
+
+				if (!checksumOk) {
+					throw new InvalidPacketException("Wrong checksum in packet");
+				}
+				// TODO check checksum, then check seqnum, then send ACK
+
+				String sequenceString = items[Datafield.SEQUENCE.ordinal()];
 				int sequence = PacketUtils.convertFromHexString(sequenceString);
 
+				String ipString = items[Datafield.IP.ordinal()];
+				String portString = items[Datafield.PORT.ordinal()];
 				InetSocketAddress source = PacketUtils.parseSocketAddress(
-						items[0], items[1]);
+						ipString, portString);
 
 				if (sequence == expectedSequence) {
 					System.out.println("ACK sender: got expected sequence");
 
-					RIPPacketGenerator packetGen = new RIPPacketGenerator(
-							source, relay, 0);
+					PacketGenerator packetGen = new PacketGenerator(source,
+							relay);
 					DatagramPacket ackPacket = packetGen
 							.makeACKPacket(sequence);
 					socket.send(ackPacket);
@@ -90,12 +97,11 @@ public class ACKSender implements Closeable, Runnable {
 							signalString);
 					boolean dataComplete = signal == Signal.REGULAR;
 
-					String data = items[4];
-					stringBuilder.append(data);
+					String d = items[4];
+					stringBuilder.append(d);
 
 					if (dataComplete) {
 						dataBuffer.put(stringBuilder.toString());
-						receiving = false;
 
 						stringBuilder = new StringBuilder();
 
@@ -110,7 +116,7 @@ public class ACKSender implements Closeable, Runnable {
 			} catch (InterruptedException | InvalidPacketException
 					| NumberFormatException e) {
 				e.printStackTrace();
-				receiving = false;
+				active = false;
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

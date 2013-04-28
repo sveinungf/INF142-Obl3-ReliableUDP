@@ -62,6 +62,11 @@ public class PacketUtils {
 		return md5.substring(0, checksumLength);
 	}
 
+	public static boolean validChecksum(String toValidate, String checksum) {
+		String expected = getChecksum(checksum.length(), toValidate);
+		return expected.equals(checksum);
+	}
+
 	public static InetSocketAddress parseSocketAddress(final String ipString,
 			final String portString) throws InvalidSocketAddressException {
 

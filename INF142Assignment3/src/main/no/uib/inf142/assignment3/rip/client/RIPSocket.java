@@ -24,9 +24,9 @@ public class RIPSocket implements Closeable {
 	 * connected to a {@code RIPServerSocket} at a specified location.
 	 * 
 	 * @param server
-	 *            - The IP address and port to the server.
+	 *            - The IP address and port which the server listens on.
 	 * @param relay
-	 *            - The IP address and port to the relay.
+	 *            - The IP address and port which the relay listens on.
 	 * @throws SocketException
 	 *             if the socket could not be opened.
 	 */
@@ -90,6 +90,8 @@ public class RIPSocket implements Closeable {
 		packetMakerThread.interrupt();
 		packetSenderThread.interrupt();
 		ackReceiverThread.interrupt();
+
+		socket.close();
 	}
 }
 

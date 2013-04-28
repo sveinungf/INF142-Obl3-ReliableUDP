@@ -6,6 +6,7 @@ import java.net.DatagramSocket;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
@@ -41,63 +42,51 @@ public class ACKReceiver implements Runnable {
 
 				String data = new String(packet.getData(), 0,
 						packet.getLength());
+
 				String[] items = data.split(Protocol.PACKET_DELIMITER);
 
-				// TODO substitute literal
-				if (items.length < 4) {
+				int datafields = Datafield.values().length;
+				if (items.length < datafields) {
 					throw new InvalidPacketException(
 							"Packet contains too few datafields");
 				}
 
-				// TODO substitute literals
-				String sequenceString = items[2];
-				String signalString = items[3];
+				String sequenceString = items[Datafield.SEQUENCE.ordinal()];
+				String signalString = items[Datafield.SIGNAL.ordinal()];
 
 				Signal signal = SignalMap.getInstance().getByString(
 						signalString);
 
-				if (signal == null) {
-					throw new InvalidPacketException("Illegal signal in packet");
-				} else if (signal != Signal.ACK) {
+				if (signal == null || signal != Signal.ACK) {
 					throw new InvalidPacketException("Invalid signal in packet");
 				}
 
 				int sequence = PacketUtils.convertFromHexString(sequenceString);
-
 				if (sequence >= expectedSequence) {
-					System.out.println("ACK receiver: got seq >= expected seq");
+					System.out.println("[ACKReceiver] Received expected: \""
+							+ data + "\"");
+
 					Iterator<RIPPacket> it = window.iterator();
-					System.out.println("ACK receiver: window size "
-							+ window.size());
 
 					while (it.hasNext()) {
-						System.out
-								.println("ACK receiver: checks a packet in the window");
 						RIPPacket currentRIPPacket = it.next();
 
-						if (currentRIPPacket.getSequence() <= sequence) {
-							System.out
-									.println("ACK receiver: packets in window before removal: "
-											+ window.size());
+						if (sequence >= currentRIPPacket.getSequence()) {
 							it.remove();
-							System.out
-									.println("ACK receiver: packets in window after removal: "
-											+ window.size());
 						}
 					}
-					System.out
-							.println("ACK receiver: no more packets in window");
 
 					expectedSequence = sequence + 1;
+				} else {
+					System.out.println("[ACKReceiver] Received unexpected: \""
+							+ data + "\"");
 				}
 
-			} catch (InvalidPacketException | NumberFormatException
-					| IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (InvalidPacketException | NumberFormatException e) {
+				System.out.println(e.getMessage());
+			} catch (IOException e) {
+				active = false;
 			}
 		}
-
-		socket.close();
 	}
 }

@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
-import no.uib.inf142.assignment3.rip.common.RIPPacketGenerator;
+import no.uib.inf142.assignment3.rip.common.PacketGenerator;
+import no.uib.inf142.assignment3.rip.common.SequentialRIPPacketGenerator;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class PacketMaker implements Runnable {
@@ -13,7 +14,7 @@ public class PacketMaker implements Runnable {
 	private boolean active;
 	private BlockingQueue<String> dataBuffer;
 	private BlockingQueue<RIPPacket> packetBuffer;
-	private RIPPacketGenerator packetGen;
+	private SequentialRIPPacketGenerator packetGen;
 
 	public PacketMaker(BlockingQueue<String> dataBuffer,
 			BlockingQueue<RIPPacket> packetBuffer,
@@ -24,7 +25,7 @@ public class PacketMaker implements Runnable {
 		this.dataBuffer = dataBuffer;
 		this.packetBuffer = packetBuffer;
 
-		packetGen = new RIPPacketGenerator(finalDestination, relay,
+		packetGen = new SequentialRIPPacketGenerator(finalDestination, relay,
 				startingSequence);
 	}
 
