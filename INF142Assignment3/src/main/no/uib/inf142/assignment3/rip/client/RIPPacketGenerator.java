@@ -34,11 +34,33 @@ public class RIPPacketGenerator {
 		return buildDelimitedString(ip, port, sequence);
 	}
 
+	public DatagramPacket makeACKPacket(int sequence)
+			throws TooShortPacketLengthException, SocketException {
+		int maxPacketLength = Protocol.PACKET_LENGTH;
+		String ip = finalDestination.getAddress().getHostAddress();
+		String port = "" + finalDestination.getPort();
+		String seqString = "" + sequence;
+		String signal = Signal.ACK.getString();
+
+		String payload = buildDelimitedString(ip, port, seqString, signal);
+
+		byte[] byteData = payload.getBytes();
+		int dataLength = byteData.length;
+
+		if (dataLength > maxPacketLength) {
+			throw new TooShortPacketLengthException("Packet length "
+					+ maxPacketLength + " too short");
+		}
+
+		return new DatagramPacket(byteData, dataLength, relay);
+	}
+
 	public DatagramPacket makeSignalPacket(final Signal signal)
 			throws TooShortPacketLengthException, SocketException {
 
 		int maxPacketLength = Protocol.PACKET_LENGTH;
-		String payload = buildHeaderString();
+		String header = buildHeaderString();
+		String payload = buildDelimitedString(header, signal.getString());
 
 		byte[] byteData = payload.getBytes();
 		int dataLength = byteData.length;

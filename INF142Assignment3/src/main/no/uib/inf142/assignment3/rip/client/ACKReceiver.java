@@ -55,6 +55,13 @@ public class ACKReceiver implements Runnable {
 				// TODO substitute literals
 				String sequenceString = items[2];
 				String signalString = items[3];
+				
+				System.out.println("TEST");
+				for (String s : items) {
+					System.out.println(s);
+				}
+				
+				System.out.println("ACK receiver: signalString = " + signalString);
 
 				Signal signal = SignalMap.getInstance().getByString(
 						signalString);
