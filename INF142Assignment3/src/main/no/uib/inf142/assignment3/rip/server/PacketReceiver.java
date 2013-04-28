@@ -25,6 +25,7 @@ public class PacketReceiver implements Closeable, Runnable {
 	@Override
 	public void run() {
 		System.out.println("packetreceiver: ready");
+		System.out.println("packetreceiver: socketport " + socket.getLocalPort());
 
 		while (receiving) {
 			byte[] data = new byte[Protocol.PACKET_LENGTH];

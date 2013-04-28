@@ -7,7 +7,7 @@ public enum Signal {
 
 	SYN("S"),
 	ACK("A"),
-	SYNACK("B"),
+	SYNACK("Y"),
 	FIN("F");
 
 	private String string;

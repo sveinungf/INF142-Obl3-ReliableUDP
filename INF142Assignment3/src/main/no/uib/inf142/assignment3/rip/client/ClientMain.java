@@ -13,7 +13,7 @@ public class ClientMain {
 		InetAddress localhost = null;
 		
 		try {
-			localhost = InetAddress.getLocalHost();
+			localhost = InetAddress.getByName("127.0.0.1");
 		} catch (UnknownHostException e) {
 		}
 		
@@ -21,7 +21,7 @@ public class ClientMain {
 		InetSocketAddress relay = new InetSocketAddress(localhost, Protocol.RELAYPORT);
 		
 		try {
-			RIPSocket ripsocket = new RIPSocket(server, relay);
+			RIPSocket ripsocket = new RIPSocket(server, server);
 			ripsocket.send("hei alle sammen");
 			//ripsocket.close();
 		} catch (SocketException e) {

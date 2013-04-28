@@ -45,8 +45,8 @@ public class RIPSocket implements Closeable {
 		PacketMaker packetMaker = new PacketMaker(dataBuffer, packetBuffer,
 				server, relay, startingSequence);
 
-		PacketSender packetSender = new PacketSender(socket, window,
-				packetBuffer);
+		PacketSender packetSender = new PacketSender(socket, packetBuffer,
+				window);
 
 		ackReceiverThread = new Thread(ackReceiver);
 		packetMakerThread = new Thread(packetMaker);

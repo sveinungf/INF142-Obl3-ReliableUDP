@@ -19,8 +19,8 @@ public class ACKReceiver implements Runnable {
 	private BlockingQueue<RIPPacket> window;
 	private DatagramSocket socket;
 
-	public ACKReceiver(BlockingQueue<RIPPacket> window,
-			DatagramSocket socket, int startingSequence) {
+	public ACKReceiver(BlockingQueue<RIPPacket> window, DatagramSocket socket,
+			int startingSequence) {
 
 		active = true;
 		expectedSequence = startingSequence;
@@ -31,19 +31,21 @@ public class ACKReceiver implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("ACK receiver: ready");
+		System.out.println("ACK receiver: socketport " + socket.getLocalPort());
 
 		while (active) {
 			try {
-				System.out.println("ACK receiver: waiting for ACK");
 				byte[] byteData = new byte[Protocol.PACKET_LENGTH];
 				DatagramPacket packet = new DatagramPacket(byteData,
 						byteData.length);
 
+				System.out.println("ACK receiver: waiting for ACK");
 				socket.receive(packet);
-				System.out.println("ACK receiver: received something");
 
 				String data = new String(packet.getData(), 0,
 						packet.getLength());
+
+				System.out.println("ACK receiver: received: " + data);
 				String[] items = data.split(Protocol.PACKET_DELIMITER);
 
 				// TODO substitute literal
@@ -55,13 +57,6 @@ public class ACKReceiver implements Runnable {
 				// TODO substitute literals
 				String sequenceString = items[2];
 				String signalString = items[3];
-				
-				System.out.println("TEST");
-				for (String s : items) {
-					System.out.println(s);
-				}
-				
-				System.out.println("ACK receiver: signalString = " + signalString);
 
 				Signal signal = SignalMap.getInstance().getByString(
 						signalString);
@@ -74,22 +69,29 @@ public class ACKReceiver implements Runnable {
 
 				int sequence = Integer.parseInt(sequenceString);
 
-				if (sequence == expectedSequence) {
-					System.out.println("ACK receiver: got expected seq");
-					++expectedSequence;
-				} else if (sequence > expectedSequence) {
-					System.out.println("ACK receiver: got seq > expected seq");
+				if (sequence >= expectedSequence) {
+					System.out.println("ACK receiver: got seq >= expected seq");
 					Iterator<RIPPacket> it = window.iterator();
+					System.out.println("ACK receiver: window size "
+							+ window.size());
 
 					while (it.hasNext()) {
+						System.out
+								.println("ACK receiver: checks a packet in the window");
 						RIPPacket currentRIPPacket = it.next();
 
-						if (currentRIPPacket.getSequence() < sequence) {
-							System.out.println("ACK receiver: packets in window before removal: " + window.size());
+						if (currentRIPPacket.getSequence() <= sequence) {
+							System.out
+									.println("ACK receiver: packets in window before removal: "
+											+ window.size());
 							it.remove();
-							System.out.println("ACK receiver: packets in window after removal: " + window.size());
+							System.out
+									.println("ACK receiver: packets in window after removal: "
+											+ window.size());
 						}
 					}
+					System.out
+							.println("ACK receiver: no more packets in window");
 
 					expectedSequence = sequence + 1;
 				}
