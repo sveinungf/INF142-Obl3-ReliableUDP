@@ -11,10 +11,12 @@ import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.client.RIPPacketGenerator;
+import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
+import no.uib.inf142.assignment3.rip.exception.InvalidSocketAddressException;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class ACKSender implements Closeable, Runnable {
@@ -52,8 +54,9 @@ public class ACKSender implements Closeable, Runnable {
 				String payload = new String(byteData, 0, packet.getLength());
 
 				InetAddress relayAddress = packet.getAddress();
-				int relayPort = packet.getPort();
-				InetSocketAddress relay = new InetSocketAddress(relayAddress, relayPort);
+				int relayPort = Protocol.RELAY_LISTENING_PORT;
+				InetSocketAddress relay = new InetSocketAddress(relayAddress,
+						relayPort);
 
 				System.out.println("ACK sender: packet from "
 						+ relayAddress.getHostAddress() + ":" + relayPort);
@@ -65,49 +68,46 @@ public class ACKSender implements Closeable, Runnable {
 					throw new InvalidPacketException(
 							"Packet contains too few datafields");
 				}
-				
+
 				String sequenceString = items[2];
 				int sequence = Integer.parseInt(sequenceString);
-				
-				String ip = items[0];
-				
-				if (ip.charAt(0) == '/') {
-					ip = ip.substring(1);
-				}
-				InetAddress sourceIP = InetAddress.getByName(ip);
-				int sourcePort = Integer.parseInt(items[1]);
-				InetSocketAddress source = new InetSocketAddress(sourceIP, sourcePort);
-				
-				
-				
+
+				InetSocketAddress source = PacketUtils.parseSocketAddress(
+						items[0], items[1]);
+
 				if (sequence == expectedSequence) {
 					System.out.println("ACK sender: got expected sequence");
-					
-					RIPPacketGenerator packetGen = new RIPPacketGenerator(source, relay, 0);
-					DatagramPacket ackPacket = packetGen.makeACKPacket(sequence);
+
+					RIPPacketGenerator packetGen = new RIPPacketGenerator(
+							source, relay, 0);
+					DatagramPacket ackPacket = packetGen
+							.makeACKPacket(sequence);
 					socket.send(ackPacket);
-					
+
 					String signalString = items[3];
-					Signal signal = SignalMap.getInstance().getByString(signalString);
+					Signal signal = SignalMap.getInstance().getByString(
+							signalString);
 					boolean dataComplete = signal == Signal.REGULAR;
-					
+
 					String data = items[4];
 					stringBuilder.append(data);
 
 					if (dataComplete) {
 						dataBuffer.put(stringBuilder.toString());
 						receiving = false;
-						
+
 						stringBuilder = new StringBuilder();
 
 						System.out.println("ACK sender: buffered data");
 					}
-					
+
 					++expectedSequence;
 				} else {
-					System.out.println("ACK sender: got an unexpected sequence");
+					System.out
+							.println("ACK sender: got an unexpected sequence");
 				}
-			} catch (InterruptedException | InvalidPacketException | NumberFormatException e) {
+			} catch (InterruptedException | InvalidPacketException
+					| NumberFormatException e) {
 				System.out.println(e.getMessage());
 				receiving = false;
 			} catch (UnknownHostException e) {
@@ -120,6 +120,9 @@ public class ACKSender implements Closeable, Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvalidSocketAddressException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

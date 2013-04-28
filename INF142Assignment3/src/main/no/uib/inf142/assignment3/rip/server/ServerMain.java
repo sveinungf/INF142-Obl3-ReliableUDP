@@ -8,7 +8,7 @@ public class ServerMain {
 
 	public static void main(String[] args) {
 		try {
-			RIPServerSocket ripserver = new RIPServerSocket(Protocol.SERVERPORT);
+			RIPServerSocket ripserver = new RIPServerSocket(Protocol.SERVER_LISTENING_PORT);
 			String message = ripserver.receive();
 			
 			System.out.println("RIPServerSocket got: " + message);

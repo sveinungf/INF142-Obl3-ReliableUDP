@@ -36,7 +36,7 @@ public class RIPPacketGenerator {
 
 	public DatagramPacket makeACKPacket(int sequence)
 			throws TooShortPacketLengthException, SocketException {
-		int maxPacketLength = Protocol.PACKET_LENGTH;
+
 		String ip = finalDestination.getAddress().getHostAddress();
 		String port = "" + finalDestination.getPort();
 		String seqString = "" + sequence;
@@ -44,33 +44,16 @@ public class RIPPacketGenerator {
 
 		String payload = buildDelimitedString(ip, port, seqString, signal);
 
-		byte[] byteData = payload.getBytes();
-		int dataLength = byteData.length;
-
-		if (dataLength > maxPacketLength) {
-			throw new TooShortPacketLengthException("Packet length "
-					+ maxPacketLength + " too short");
-		}
-
-		return new DatagramPacket(byteData, dataLength, relay);
+		return makePacket(payload);
 	}
 
 	public DatagramPacket makeSignalPacket(final Signal signal)
 			throws TooShortPacketLengthException, SocketException {
 
-		int maxPacketLength = Protocol.PACKET_LENGTH;
 		String header = buildHeaderString();
 		String payload = buildDelimitedString(header, signal.getString());
 
-		byte[] byteData = payload.getBytes();
-		int dataLength = byteData.length;
-
-		if (dataLength > maxPacketLength) {
-			throw new TooShortPacketLengthException("Packet length "
-					+ maxPacketLength + " too short");
-		}
-
-		return new DatagramPacket(byteData, dataLength, relay);
+		return makePacket(payload);
 	}
 
 	public List<RIPPacket> makePackets(final String data)
@@ -116,10 +99,8 @@ public class RIPPacketGenerator {
 			String checksum = PacketUtils.getChecksum(payload);
 
 			String finalPayload = buildDelimitedString(payload, checksum);
-			byte[] byteData = finalPayload.getBytes();
 
-			DatagramPacket packet = new DatagramPacket(byteData,
-					byteData.length, relay);
+			DatagramPacket packet = makePacket(finalPayload);
 
 			RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
 
@@ -128,6 +109,20 @@ public class RIPPacketGenerator {
 		}
 
 		return packetList;
+	}
+
+	private DatagramPacket makePacket(String payload)
+			throws TooShortPacketLengthException, SocketException {
+
+		int packetLength = Protocol.PACKET_LENGTH;
+		byte[] byteData = payload.getBytes();
+
+		if (byteData.length > packetLength) {
+			throw new TooShortPacketLengthException("Packet length "
+					+ packetLength + " too short");
+		}
+
+		return new DatagramPacket(byteData, byteData.length, relay);
 	}
 
 	private static String buildDelimitedString(String... values) {

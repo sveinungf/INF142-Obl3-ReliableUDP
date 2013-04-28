@@ -11,6 +11,7 @@ public class Protocol {
 	public static final int TIMEOUT_IN_MILLIS = 5000;
 	public static final int WAITTIME_IN_MILLIS = 10;
 
-	public static final int SERVERPORT = 55555;
-	public static final int RELAYPORT = 11111;
+	public static final int SERVER_LISTENING_PORT = 55555;
+	public static final int RELAY_LISTENING_PORT = 11111;
+	public static final int RELAY_SENDING_PORT = 11112;
 }

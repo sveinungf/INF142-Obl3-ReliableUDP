@@ -17,11 +17,11 @@ public class ClientMain {
 		} catch (UnknownHostException e) {
 		}
 		
-		InetSocketAddress server = new InetSocketAddress(localhost, Protocol.SERVERPORT);
-		InetSocketAddress relay = new InetSocketAddress(localhost, Protocol.RELAYPORT);
+		InetSocketAddress server = new InetSocketAddress(localhost, Protocol.SERVER_LISTENING_PORT);
+		InetSocketAddress relay = new InetSocketAddress(localhost, Protocol.RELAY_LISTENING_PORT);
 		
 		try {
-			RIPSocket ripsocket = new RIPSocket(server, server);
+			RIPSocket ripsocket = new RIPSocket(server, relay);
 			ripsocket.send("hei alle sammen");
 			//ripsocket.close();
 		} catch (SocketException e) {
