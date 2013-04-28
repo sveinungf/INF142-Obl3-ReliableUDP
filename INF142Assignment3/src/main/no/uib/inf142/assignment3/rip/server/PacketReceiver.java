@@ -28,7 +28,7 @@ public class PacketReceiver implements Closeable, Runnable {
 		System.out.println("packetreceiver: socketport " + socket.getLocalPort());
 
 		while (receiving) {
-			byte[] data = new byte[Protocol.PACKET_LENGTH];
+			byte[] data = new byte[Protocol.MAX_PACKET_LENGTH];
 			DatagramPacket packet = new DatagramPacket(data, data.length);
 
 			try {

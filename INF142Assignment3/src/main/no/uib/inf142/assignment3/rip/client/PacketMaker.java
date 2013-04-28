@@ -1,7 +1,6 @@
 package no.uib.inf142.assignment3.rip.client;
 
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
@@ -41,15 +40,12 @@ public class PacketMaker implements Runnable {
 
 				List<RIPPacket> packetList = packetGen.makePackets(data);
 
-				for (RIPPacket ripPacket : packetList) {
-					packetBuffer.put(ripPacket);
+				for (RIPPacket packet : packetList) {
+					packetBuffer.put(packet);
 					System.out.println("packetmaker: buffered packet");
 				}
-			} catch (InterruptedException | SocketException
-					| TooShortPacketLengthException e) {
-				// TODO Auto-generated catch block
+			} catch (InterruptedException | TooShortPacketLengthException e) {
 				active = false;
-				e.printStackTrace();
 			}
 		}
 	}

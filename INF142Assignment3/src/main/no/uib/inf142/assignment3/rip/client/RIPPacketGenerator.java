@@ -2,7 +2,6 @@ package no.uib.inf142.assignment3.rip.client;
 
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,70 +13,61 @@ import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPPacketGenerator {
 
-	private InetSocketAddress finalDestination;
-	private InetSocketAddress relay;
+	private final String storedAddressHeader;
+	private final InetSocketAddress relay;
 	private int nextSequence;
 
 	public RIPPacketGenerator(InetSocketAddress finalDestination,
 			InetSocketAddress relay, int startingSequence) {
 
-		this.finalDestination = finalDestination;
+		String ip = finalDestination.getAddress().getHostAddress();
+		String port = "" + finalDestination.getPort();
+
+		storedAddressHeader = buildDelimitedString(ip, port);
 		this.relay = relay;
 		nextSequence = startingSequence;
 	}
 
-	private String buildHeaderString() {
-		String ip = finalDestination.getAddress().getHostAddress();
-		String port = "" + finalDestination.getPort();
-		String sequence = "" + nextSequence;
-
-		return buildDelimitedString(ip, port, sequence);
-	}
-
 	public DatagramPacket makeACKPacket(int sequence)
-			throws TooShortPacketLengthException, SocketException {
+			throws TooShortPacketLengthException {
 
-		String ip = finalDestination.getAddress().getHostAddress();
-		String port = "" + finalDestination.getPort();
-		String seqString = "" + sequence;
+		String seq = "" + sequence;
 		String signal = Signal.ACK.getString();
-
-		String payload = buildDelimitedString(ip, port, seqString, signal);
+		String payload = buildDelimitedString(storedAddressHeader, seq, signal);
 
 		return makePacket(payload);
 	}
 
 	public DatagramPacket makeSignalPacket(final Signal signal)
-			throws TooShortPacketLengthException, SocketException {
+			throws TooShortPacketLengthException {
 
-		String header = buildHeaderString();
-		String payload = buildDelimitedString(header, signal.getString());
+		String seq = "" + nextSequence;
+		String payload = buildDelimitedString(storedAddressHeader, seq,
+				signal.getString());
 
 		return makePacket(payload);
 	}
 
 	public List<RIPPacket> makePackets(final String data)
-			throws TooShortPacketLengthException, SocketException {
+			throws TooShortPacketLengthException {
 
 		List<RIPPacket> packetList = new ArrayList<RIPPacket>();
-
-		int maxPacketLength = Protocol.PACKET_LENGTH;
-		int delimiterLength = Protocol.PACKET_DELIMITER.length();
-
-		int signalSpace = Signal.PARTIAL.getString().length() + delimiterLength;
-		int checksumSpace = delimiterLength + Protocol.CHECKSUM_LENGTH;
-
-		int spaceLeft = maxPacketLength - signalSpace - checksumSpace
-				- delimiterLength;
 
 		String dataLeft = data;
 		boolean done = false;
 
-		while (!done) {
-			String header = buildHeaderString();
-			int spaceLeftForData = spaceLeft - header.length();
+		int maxPacketLength = Protocol.MAX_PACKET_LENGTH;
+		int checksumLength = Protocol.PACKET_DELIMITER.length()
+				+ Protocol.CHECKSUM_LENGTH;
+		int signalSpace = calculateMaxSignalSpace();
 
-			if (spaceLeftForData <= 0) {
+		while (!done) {
+			String seq = "" + nextSequence;
+			String header = buildDelimitedString(storedAddressHeader, seq);
+			int dataLength = maxPacketLength - header.length() - signalSpace
+					- checksumLength;
+
+			if (dataLength <= 0) {
 				throw new TooShortPacketLengthException("Packet length "
 						+ maxPacketLength + " too short");
 			}
@@ -85,9 +75,9 @@ public class RIPPacketGenerator {
 			String packetData;
 			String signal;
 
-			if (dataLeft.length() > spaceLeftForData) {
-				packetData = dataLeft.substring(0, spaceLeftForData);
-				dataLeft = dataLeft.substring(spaceLeftForData);
+			if (dataLeft.length() > dataLength) {
+				packetData = dataLeft.substring(0, dataLength);
+				dataLeft = dataLeft.substring(dataLength);
 				signal = Signal.PARTIAL.getString();
 			} else {
 				packetData = dataLeft;
@@ -96,12 +86,12 @@ public class RIPPacketGenerator {
 			}
 
 			String payload = buildDelimitedString(header, signal, packetData);
-			String checksum = PacketUtils.getChecksum(payload);
+			String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
+					payload);
 
 			String finalPayload = buildDelimitedString(payload, checksum);
 
 			DatagramPacket packet = makePacket(finalPayload);
-
 			RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
 
 			packetList.add(ripPacket);
@@ -112,9 +102,9 @@ public class RIPPacketGenerator {
 	}
 
 	private DatagramPacket makePacket(String payload)
-			throws TooShortPacketLengthException, SocketException {
+			throws TooShortPacketLengthException {
 
-		int packetLength = Protocol.PACKET_LENGTH;
+		int packetLength = Protocol.MAX_PACKET_LENGTH;
 		byte[] byteData = payload.getBytes();
 
 		if (byteData.length > packetLength) {
@@ -122,7 +112,25 @@ public class RIPPacketGenerator {
 					+ packetLength + " too short");
 		}
 
-		return new DatagramPacket(byteData, byteData.length, relay);
+		return new DatagramPacket(byteData, byteData.length,
+				relay.getAddress(), relay.getPort());
+	}
+
+	private static int calculateMaxSignalSpace() {
+		int delimiterLength = Protocol.PACKET_DELIMITER.length();
+		int maxSignalSpace = 0;
+
+		for (Signal signal : Signal.values()) {
+			int signalSpace = signal.getString().length();
+
+			if (signalSpace > maxSignalSpace) {
+				maxSignalSpace = signalSpace;
+			}
+		}
+
+		maxSignalSpace += (delimiterLength * 2);
+
+		return maxSignalSpace;
 	}
 
 	private static String buildDelimitedString(String... values) {

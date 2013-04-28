@@ -7,6 +7,7 @@ import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 
 public class RIPSocket implements Closeable {
@@ -32,7 +33,7 @@ public class RIPSocket implements Closeable {
 	public RIPSocket(InetSocketAddress server, InetSocketAddress relay)
 			throws SocketException {
 
-		int startingSequence = 0;
+		int startingSequence = Protocol.SEQUENCE_START;
 		dataBuffer = new LinkedBlockingQueue<String>();
 		socket = new DatagramSocket();
 
@@ -64,17 +65,18 @@ public class RIPSocket implements Closeable {
 	 *            - The string to send.
 	 */
 	public void send(String string) {
-		if (ackReceiverThread.isAlive() && packetMakerThread.isAlive()
-				&& packetSenderThread.isAlive()) {
+		if (socket.isClosed()) {
+			// TODO throw exception
+		}
 
-			try {
-				dataBuffer.put(string);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			System.out.println("a thread has died");
+		if (!ackReceiverThread.isAlive() || !packetMakerThread.isAlive()
+				|| !packetSenderThread.isAlive()) {
+			// TODO throw exception
+		}
+
+		try {
+			dataBuffer.put(string);
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -85,11 +87,9 @@ public class RIPSocket implements Closeable {
 	 */
 	@Override
 	public void close() {
-		//ackReceiverThread.interrupt();
-		//packetMakerThread.interrupt();
-		//packetSenderThread.interrupt();
-
-		socket.close();
+		ackReceiverThread.interrupt();
+		packetMakerThread.interrupt();
+		packetSenderThread.interrupt();
 	}
 }
 

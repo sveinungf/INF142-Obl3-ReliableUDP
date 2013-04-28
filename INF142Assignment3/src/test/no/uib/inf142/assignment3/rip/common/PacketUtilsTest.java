@@ -48,7 +48,8 @@ public class PacketUtilsTest {
 	@Test
 	public void validChecksumLength() {
 		String string = "data";
-		String checksum = PacketUtils.getChecksum(string);
+		String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
+				string);
 
 		assertEquals(Protocol.CHECKSUM_LENGTH, checksum.length());
 	}

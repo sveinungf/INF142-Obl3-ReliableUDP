@@ -35,7 +35,7 @@ public class ACKReceiver implements Runnable {
 
 		while (active) {
 			try {
-				byte[] byteData = new byte[Protocol.PACKET_LENGTH];
+				byte[] byteData = new byte[Protocol.MAX_PACKET_LENGTH];
 				DatagramPacket packet = new DatagramPacket(byteData,
 						byteData.length);
 

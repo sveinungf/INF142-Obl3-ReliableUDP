@@ -44,9 +44,9 @@ public class PacketUtils {
 		return checksum;
 	}
 
-	public static String getChecksum(String data) {
+	public static String getChecksum(int checksumLength, String data) {
 		String md5 = calculateMD5(data);
-		return md5.substring(0, Protocol.CHECKSUM_LENGTH);
+		return md5.substring(0, checksumLength);
 	}
 
 	public static InetSocketAddress parseSocketAddress(final String ipString,
