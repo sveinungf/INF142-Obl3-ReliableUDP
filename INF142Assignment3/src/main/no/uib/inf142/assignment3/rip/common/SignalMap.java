@@ -7,18 +7,33 @@ public class SignalMap {
 
 	private static final SignalMap instance = new SignalMap();
 
-	private Map<String, Signal> map;
+	private final Map<String, Signal> map;
+	private final int maxSignalLength;
 
 	private SignalMap() {
+		int maxLength = 0;
 		map = new HashMap<String, Signal>();
 
 		for (Signal signal : Signal.values()) {
-			map.put(signal.getString(), signal);
+			String signalString = signal.getString();
+			int signalLength = signalString.length();
+
+			map.put(signalString, signal);
+
+			if (signalLength > maxLength) {
+				maxLength = signalLength;
+			}
 		}
+
+		maxSignalLength = maxLength;
 	}
 
 	public Signal getByString(final String string) {
 		return map.get(string);
+	}
+
+	public int getMaxSignalLength() {
+		return maxSignalLength;
 	}
 
 	public static SignalMap getInstance() {

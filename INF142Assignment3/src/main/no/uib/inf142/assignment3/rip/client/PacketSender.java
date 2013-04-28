@@ -1,6 +1,5 @@
 package no.uib.inf142.assignment3.rip.client;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.util.concurrent.BlockingQueue;
@@ -8,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 
-public class PacketSender implements Closeable, Runnable {
+public class PacketSender implements Runnable {
 
 	private boolean active;
 	private BlockingQueue<RIPPacket> packetBuffer;
@@ -30,61 +29,34 @@ public class PacketSender implements Closeable, Runnable {
 	@Override
 	public void run() {
 		int maxWindowSize = Protocol.WINDOW_SIZE;
-		System.out.println("packetsender: ready");
 		timer.restart();
 
-		while (active) {
+		while (active && !Thread.interrupted()) {
 			boolean timeout = timer.timedOut();
 			boolean windowFull = window.size() > maxWindowSize;
 
-			if (timeout) {
-				System.out.println("packetsender: timeout");
-				try {
+			try {
+				if (timeout) {
 					for (RIPPacket ripPacket : window) {
 						socket.send(ripPacket.getDatagramPacket());
-						System.out.println("packetsender: sent a packet");
 					}
-				} catch (IOException e) {
-					// TODO
-				}
 
-				timer.restart();
-				System.out.println("packetsender: restarted timer");
-			} else if (!packetBuffer.isEmpty() && !windowFull) {
-				try {
+					timer.restart();
+				} else if (!packetBuffer.isEmpty() && !windowFull) {
 					RIPPacket ripPacket = packetBuffer.take();
-					
-					System.out.println("packetsender: got packet from buffer");
 
 					if (window.isEmpty()) {
 						timer.restart();
-						System.out.println("packetsender: restarted timer");
 					}
 
 					window.put(ripPacket);
 					socket.send(ripPacket.getDatagramPacket());
-
-					System.out.println("packetsender: sent a packet");
-
-				} catch (InterruptedException | IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} else {
-				try {
+				} else {
 					Thread.sleep(Protocol.WAITTIME_IN_MILLIS);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
+			} catch (IOException | InterruptedException e) {
+				active = false;
 			}
 		}
 	}
-
-	@Override
-	public void close() {
-		active = false;
-		socket.close();
-	}
-
 }

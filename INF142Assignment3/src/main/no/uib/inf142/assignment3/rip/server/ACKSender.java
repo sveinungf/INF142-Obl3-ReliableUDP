@@ -30,10 +30,11 @@ public class ACKSender implements Closeable, Runnable {
 
 	public ACKSender(DatagramSocket socket,
 			BlockingQueue<DatagramPacket> packetBuffer,
-			BlockingQueue<String> dataBuffer) throws IOException {
+			BlockingQueue<String> dataBuffer, int startingSequence)
+			throws IOException {
 
 		receiving = true;
-		expectedSequence = 0;
+		expectedSequence = startingSequence;
 		this.packetBuffer = packetBuffer;
 		this.dataBuffer = dataBuffer;
 		this.socket = socket;

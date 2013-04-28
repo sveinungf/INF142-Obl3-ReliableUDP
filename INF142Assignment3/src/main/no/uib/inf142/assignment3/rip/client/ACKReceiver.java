@@ -31,22 +31,16 @@ public class ACKReceiver implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("ACK receiver: ready");
-		System.out.println("ACK receiver: socketport " + socket.getLocalPort());
-
-		while (active) {
+		while (active && !Thread.interrupted()) {
 			try {
 				byte[] byteData = new byte[Protocol.MAX_PACKET_LENGTH];
 				DatagramPacket packet = new DatagramPacket(byteData,
 						byteData.length);
 
-				System.out.println("ACK receiver: waiting for ACK");
 				socket.receive(packet);
 
 				String data = new String(packet.getData(), 0,
 						packet.getLength());
-
-				System.out.println("ACK receiver: received: " + data);
 				String[] items = data.split(Protocol.PACKET_DELIMITER);
 
 				// TODO substitute literal
@@ -103,5 +97,7 @@ public class ACKReceiver implements Runnable {
 				e.printStackTrace();
 			}
 		}
+
+		socket.close();
 	}
 }

@@ -119,27 +119,13 @@ public class RIPPacketGenerator {
 		int ipLength = Protocol.MAX_IP_LENGTH + delimiterLength;
 		int portLength = Protocol.MAX_PORT_LENGTH + delimiterLength;
 		int seqLength = Protocol.SEQUENCE_LENGTH + delimiterLength;
-		int signalLength = calculateMaxSignalSpace() + delimiterLength;
+		int signalLength = 0;// calculateMaxSignalSpace() + delimiterLength;
 		int checksumLength = delimiterLength + Protocol.CHECKSUM_LENGTH;
 
 		int spaceLeft = maxPacketLength - ipLength - portLength - seqLength
 				- signalLength - checksumLength;
 
 		return spaceLeft;
-	}
-
-	private static int calculateMaxSignalSpace() {
-		int maxSignalSpace = 0;
-
-		for (Signal signal : Signal.values()) {
-			int signalSpace = signal.getString().length();
-
-			if (signalSpace > maxSignalSpace) {
-				maxSignalSpace = signalSpace;
-			}
-		}
-
-		return maxSignalSpace;
 	}
 
 	private static String buildDelimitedString(String... values) {

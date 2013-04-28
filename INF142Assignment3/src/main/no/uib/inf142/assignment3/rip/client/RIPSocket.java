@@ -87,9 +87,9 @@ public class RIPSocket implements Closeable {
 	 */
 	@Override
 	public void close() {
-		ackReceiverThread.interrupt();
 		packetMakerThread.interrupt();
 		packetSenderThread.interrupt();
+		ackReceiverThread.interrupt();
 	}
 }
 

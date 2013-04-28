@@ -7,6 +7,8 @@ import java.net.DatagramSocket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.Protocol;
+
 public class RIPServerSocket implements Closeable {
 
 	private BlockingQueue<String> dataBuffer;
@@ -14,12 +16,14 @@ public class RIPServerSocket implements Closeable {
 	private ACKSender sender;
 
 	public RIPServerSocket(int port) throws IOException {
+		int startingSequence = Protocol.SEQUENCE_START;
 		BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
 		DatagramSocket socket = new DatagramSocket(port);
 		dataBuffer = new LinkedBlockingQueue<String>();
 
 		receiver = new PacketReceiver(socket, packetBuffer);
-		sender = new ACKSender(socket, packetBuffer, dataBuffer);
+		sender = new ACKSender(socket, packetBuffer, dataBuffer,
+				startingSequence);
 
 		new Thread(receiver).start();
 		new Thread(sender).start();
