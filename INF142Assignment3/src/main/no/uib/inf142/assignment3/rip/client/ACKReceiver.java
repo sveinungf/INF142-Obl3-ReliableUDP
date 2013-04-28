@@ -34,6 +34,7 @@ public class ACKReceiver implements Runnable {
 
 		while (active) {
 			try {
+				System.out.println("ACK receiver: waiting for ACK");
 				byte[] byteData = new byte[Protocol.PACKET_LENGTH];
 				DatagramPacket packet = new DatagramPacket(byteData,
 						byteData.length);
@@ -67,15 +68,19 @@ public class ACKReceiver implements Runnable {
 				int sequence = Integer.parseInt(sequenceString);
 
 				if (sequence == expectedSequence) {
+					System.out.println("ACK receiver: got expected seq");
 					++expectedSequence;
 				} else if (sequence > expectedSequence) {
+					System.out.println("ACK receiver: got seq > expected seq");
 					Iterator<RIPPacket> it = window.iterator();
 
 					while (it.hasNext()) {
 						RIPPacket currentRIPPacket = it.next();
 
 						if (currentRIPPacket.getSequence() < sequence) {
+							System.out.println("ACK receiver: packets in window before removal: " + window.size());
 							it.remove();
+							System.out.println("ACK receiver: packets in window after removal: " + window.size());
 						}
 					}
 

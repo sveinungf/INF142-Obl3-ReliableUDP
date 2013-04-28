@@ -10,7 +10,7 @@ import no.uib.inf142.assignment3.rip.common.RIPPacket;
 
 public class PacketSender implements Closeable, Runnable {
 
-	private boolean receiving;
+	private boolean active;
 	private BlockingQueue<RIPPacket> packetBuffer;
 	private BlockingQueue<RIPPacket> window;
 	private DatagramSocket socket;
@@ -20,7 +20,7 @@ public class PacketSender implements Closeable, Runnable {
 			BlockingQueue<RIPPacket> packetBuffer,
 			BlockingQueue<RIPPacket> window) {
 
-		receiving = true;
+		active = true;
 		this.window = window;
 		this.packetBuffer = packetBuffer;
 		this.socket = socket;
@@ -33,27 +33,32 @@ public class PacketSender implements Closeable, Runnable {
 		System.out.println("packetsender: ready");
 		timer.restart();
 
-		while (receiving) {
+		while (active) {
 			boolean timeout = timer.timedOut();
 			boolean windowFull = window.size() > maxWindowSize;
 
 			if (timeout) {
+				System.out.println("packetsender: timeout");
 				try {
 					for (RIPPacket ripPacket : window) {
 						socket.send(ripPacket.getDatagramPacket());
+						System.out.println("packetsender: sent a packet");
 					}
 				} catch (IOException e) {
 					// TODO
 				}
 
 				timer.restart();
+				System.out.println("packetsender: restarted timer");
 			} else if (!packetBuffer.isEmpty() && !windowFull) {
 				try {
 					RIPPacket ripPacket = packetBuffer.take();
-					// DatagramPacket packet = packetBuffer.take();
+					
+					System.out.println("packetsender: got packet from buffer");
 
 					if (window.isEmpty()) {
 						timer.restart();
+						System.out.println("packetsender: restarted timer");
 					}
 
 					window.put(ripPacket);
@@ -78,7 +83,7 @@ public class PacketSender implements Closeable, Runnable {
 
 	@Override
 	public void close() {
-		receiving = false;
+		active = false;
 		socket.close();
 	}
 

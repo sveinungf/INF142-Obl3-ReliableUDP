@@ -7,7 +7,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.concurrent.BlockingQueue;
 
-public class SenderThread implements Closeable, Runnable {
+public class ACKSender implements Closeable, Runnable {
 
 	private boolean receiving;
 	private BlockingQueue<DatagramPacket> packetBuffer;
@@ -15,7 +15,7 @@ public class SenderThread implements Closeable, Runnable {
 	private DatagramSocket socket;
 	private StringBuilder stringBuilder;
 
-	public SenderThread(DatagramSocket socket,
+	public ACKSender(DatagramSocket socket,
 			BlockingQueue<DatagramPacket> packetBuffer,
 			BlockingQueue<String> dataBuffer) throws IOException {
 

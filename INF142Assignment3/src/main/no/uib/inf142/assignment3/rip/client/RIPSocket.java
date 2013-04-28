@@ -13,9 +13,9 @@ public class RIPSocket implements Closeable {
 
 	private BlockingQueue<String> dataBuffer;
 	private DatagramSocket socket;
-	private ACKReceiver ackReceiver;
-	private PacketMaker packetMaker;
-	private PacketSender packetSender;
+	private Thread ackReceiverThread;
+	private Thread packetMakerThread;
+	private Thread packetSenderThread;
 
 	/**
 	 * Constructs a {@code RIPSocket} object, and which similarly to a
@@ -39,15 +39,22 @@ public class RIPSocket implements Closeable {
 		BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
 		BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-		ackReceiver = new ACKReceiver(window, socket, startingSequence);
-		packetMaker = new PacketMaker(dataBuffer, packetBuffer, server,
-				relay, startingSequence);
+		ACKReceiver ackReceiver = new ACKReceiver(window, socket,
+				startingSequence);
 
-		packetSender = new PacketSender(socket, window, packetBuffer);
+		PacketMaker packetMaker = new PacketMaker(dataBuffer, packetBuffer,
+				server, relay, startingSequence);
 
-		new Thread(ackReceiver).start();
-		new Thread(packetMaker).start();
-		new Thread(packetSender).start();
+		PacketSender packetSender = new PacketSender(socket, window,
+				packetBuffer);
+
+		ackReceiverThread = new Thread(ackReceiver);
+		packetMakerThread = new Thread(packetMaker);
+		packetSenderThread = new Thread(packetSender);
+
+		ackReceiverThread.start();
+		packetMakerThread.start();
+		packetSenderThread.start();
 	}
 
 	/**
@@ -57,11 +64,17 @@ public class RIPSocket implements Closeable {
 	 *            - The string to send.
 	 */
 	public void send(String string) {
-		try {
-			dataBuffer.put(string);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (ackReceiverThread.isAlive() && packetMakerThread.isAlive()
+				&& packetSenderThread.isAlive()) {
+
+			try {
+				dataBuffer.put(string);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			System.out.println("a thread has died");
 		}
 	}
 
@@ -72,6 +85,10 @@ public class RIPSocket implements Closeable {
 	 */
 	@Override
 	public void close() {
+		//ackReceiverThread.interrupt();
+		//packetMakerThread.interrupt();
+		//packetSenderThread.interrupt();
+
 		socket.close();
 	}
 }

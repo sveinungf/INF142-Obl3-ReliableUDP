@@ -10,16 +10,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class RIPServerSocket implements Closeable {
 
 	private BlockingQueue<String> dataBuffer;
-	private ReceiverThread receiver;
-	private SenderThread sender;
+	private PacketReceiver receiver;
+	private ACKSender sender;
 
 	public RIPServerSocket(int port) throws IOException {
 		BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
 		DatagramSocket socket = new DatagramSocket(port);
 		dataBuffer = new LinkedBlockingQueue<String>();
 
-		receiver = new ReceiverThread(socket, packetBuffer);
-		sender = new SenderThread(socket, packetBuffer, dataBuffer);
+		receiver = new PacketReceiver(socket, packetBuffer);
+		sender = new ACKSender(socket, packetBuffer, dataBuffer);
 
 		new Thread(receiver).start();
 		new Thread(sender).start();
