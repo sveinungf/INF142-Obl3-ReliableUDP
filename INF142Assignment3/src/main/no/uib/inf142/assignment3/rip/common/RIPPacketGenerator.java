@@ -1,14 +1,10 @@
-package no.uib.inf142.assignment3.rip.client;
+package no.uib.inf142.assignment3.rip.common;
 
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import no.uib.inf142.assignment3.rip.common.PacketUtils;
-import no.uib.inf142.assignment3.rip.common.Protocol;
-import no.uib.inf142.assignment3.rip.common.RIPPacket;
-import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPPacketGenerator {
@@ -55,23 +51,14 @@ public class RIPPacketGenerator {
 
 		String dataLeft = data;
 		boolean done = false;
+		int dataLength = calculateSpaceLeftForData();
 
-		int maxPacketLength = Protocol.MAX_PACKET_LENGTH;
-		int checksumLength = Protocol.PACKET_DELIMITER.length()
-				+ Protocol.CHECKSUM_LENGTH;
-		int signalSpace = calculateMaxSignalSpace();
+		if (dataLength <= 0) {
+			throw new TooShortPacketLengthException("Packet length "
+					+ Protocol.MAX_PACKET_LENGTH + " too short");
+		}
 
 		while (!done) {
-			String seq = "" + nextSequence;
-			String header = buildDelimitedString(storedAddressHeader, seq);
-			int dataLength = maxPacketLength - header.length() - signalSpace
-					- checksumLength;
-
-			if (dataLength <= 0) {
-				throw new TooShortPacketLengthException("Packet length "
-						+ maxPacketLength + " too short");
-			}
-
 			String packetData;
 			String signal;
 
@@ -85,11 +72,20 @@ public class RIPPacketGenerator {
 				done = true;
 			}
 
-			String payload = buildDelimitedString(header, signal, packetData);
+			String seqString = PacketUtils.convertToHexString(nextSequence);
+			String payload = buildDelimitedString(storedAddressHeader,
+					seqString, signal, packetData);
+
 			String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
 					payload);
 
 			String finalPayload = buildDelimitedString(payload, checksum);
+
+			if (done) {
+				// Need trailing spaces here since the Relay doesn't clean up
+				int trailingSpaces = dataLength - dataLeft.length();
+				finalPayload += PacketUtils.makeSpaces(trailingSpaces);
+			}
 
 			DatagramPacket packet = makePacket(finalPayload);
 			RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
@@ -116,8 +112,23 @@ public class RIPPacketGenerator {
 				relay.getAddress(), relay.getPort());
 	}
 
-	private static int calculateMaxSignalSpace() {
+	private static int calculateSpaceLeftForData() {
 		int delimiterLength = Protocol.PACKET_DELIMITER.length();
+
+		int maxPacketLength = Protocol.MAX_PACKET_LENGTH;
+		int ipLength = Protocol.MAX_IP_LENGTH + delimiterLength;
+		int portLength = Protocol.MAX_PORT_LENGTH + delimiterLength;
+		int seqLength = Protocol.SEQUENCE_LENGTH + delimiterLength;
+		int signalLength = calculateMaxSignalSpace() + delimiterLength;
+		int checksumLength = delimiterLength + Protocol.CHECKSUM_LENGTH;
+
+		int spaceLeft = maxPacketLength - ipLength - portLength - seqLength
+				- signalLength - checksumLength;
+
+		return spaceLeft;
+	}
+
+	private static int calculateMaxSignalSpace() {
 		int maxSignalSpace = 0;
 
 		for (Signal signal : Signal.values()) {
@@ -127,8 +138,6 @@ public class RIPPacketGenerator {
 				maxSignalSpace = signalSpace;
 			}
 		}
-
-		maxSignalSpace += (delimiterLength * 2);
 
 		return maxSignalSpace;
 	}

@@ -22,7 +22,7 @@ public class ClientMain {
 		
 		try {
 			RIPSocket ripsocket = new RIPSocket(server, relay);
-			ripsocket.send("hei alle sammen");
+			ripsocket.send("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789");
 			//ripsocket.close();
 		} catch (SocketException e) {
 			e.printStackTrace();

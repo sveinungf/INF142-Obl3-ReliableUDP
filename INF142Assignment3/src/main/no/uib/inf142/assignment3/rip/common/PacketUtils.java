@@ -12,6 +12,7 @@ import no.uib.inf142.assignment3.rip.exception.InvalidSocketAddressException;
 public class PacketUtils {
 
 	public static final int HEXADECIMAL = 16;
+	public static final int MAX_HEX_LENGTH = 8;
 
 	public static String buildDelimitedString(String delimiter,
 			String... values) {
@@ -28,6 +29,14 @@ public class PacketUtils {
 		}
 
 		return sb.toString();
+	}
+
+	public static String convertToHexString(int number) {
+		return String.format("%08x", Integer.valueOf(number));
+	}
+
+	public static String makeSpaces(int length) {
+		return new String(new char[length]).replace('\0', ' ');
 	}
 
 	public static String calculateMD5(String data) {

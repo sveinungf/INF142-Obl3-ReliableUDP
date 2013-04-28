@@ -35,6 +35,8 @@ public class PacketReceiver implements Closeable, Runnable {
 				System.out.println("packetreceiver: waiting for packet");
 				socket.receive(packet);
 				System.out.println("packetreceiver: received something");
+				String s = new String(packet.getData(), 0, packet.getLength());
+				System.out.println(s);
 
 				packetBuffer.put(packet);
 				System.out.println("packetreceiver: buffered packet");

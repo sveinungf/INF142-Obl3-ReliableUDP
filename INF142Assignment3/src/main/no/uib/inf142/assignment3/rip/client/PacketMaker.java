@@ -1,10 +1,12 @@
 package no.uib.inf142.assignment3.rip.client;
 
+import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
+import no.uib.inf142.assignment3.rip.common.RIPPacketGenerator;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class PacketMaker implements Runnable {
@@ -42,6 +44,9 @@ public class PacketMaker implements Runnable {
 
 				for (RIPPacket packet : packetList) {
 					packetBuffer.put(packet);
+					DatagramPacket p = packet.getDatagramPacket();
+					String d = new String(p.getData(), 0, p.getLength());
+					System.out.println(d);
 					System.out.println("packetmaker: buffered packet");
 				}
 			} catch (InterruptedException | TooShortPacketLengthException e) {

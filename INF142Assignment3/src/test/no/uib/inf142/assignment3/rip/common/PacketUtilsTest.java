@@ -53,4 +53,40 @@ public class PacketUtilsTest {
 
 		assertEquals(Protocol.CHECKSUM_LENGTH, checksum.length());
 	}
+
+	@Test
+	public void leadingZerosInHexString() {
+		int number = 161;
+		String expected = "000000a1";
+		String actual = PacketUtils.convertToHexString(number);
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void noLeadingZerosInHexString() {
+		int number = 161;
+		String expected = "a1";
+		String actual = PacketUtils.convertToHexString(number);
+
+		assertFalse(expected.equals(actual));
+	}
+
+	@Test
+	public void hexOfNumberGreaterThanIntegerMax() {
+		int number = Integer.MAX_VALUE;
+		String expected = PacketUtils.convertToHexString(Integer.MIN_VALUE);
+		String actual = PacketUtils.convertToHexString(number + 1);
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void makeSpaces() {
+		int length = 10;
+		String expected = "          ";
+		String actual = PacketUtils.makeSpaces(length);
+
+		assertEquals(expected, actual);
+	}
 }

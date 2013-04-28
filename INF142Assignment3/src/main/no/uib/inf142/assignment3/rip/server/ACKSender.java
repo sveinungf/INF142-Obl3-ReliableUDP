@@ -10,9 +10,9 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
-import no.uib.inf142.assignment3.rip.client.RIPPacketGenerator;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
+import no.uib.inf142.assignment3.rip.common.RIPPacketGenerator;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
