@@ -6,6 +6,7 @@ public enum Datafield {
 	PORT(Protocol.MAX_PORT_LENGTH),
 	SEQUENCE(Protocol.SEQUENCE_LENGTH),
 	SIGNAL(SignalMap.getInstance().getMaxSignalLength()),
+	DATA(0),
 	CHECKSUM(Protocol.CHECKSUM_LENGTH);
 
 	private int length;

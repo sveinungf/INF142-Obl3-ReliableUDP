@@ -2,6 +2,8 @@ package no.uib.inf142.assignment3.rip.common;
 
 import static org.junit.Assert.*;
 
+import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
+
 import org.junit.Test;
 
 public class PacketUtilsTest {
@@ -62,6 +64,13 @@ public class PacketUtilsTest {
 	}
 
 	@Test
+	public void validChecksumInPacket() {
+		String packetData = "/127.0.0.1;62428;00000001;P;hijklmn;d4c  ";
+
+		assertTrue(PacketUtils.validChecksumInPacket(packetData));
+	}
+
+	@Test
 	public void invalidChecksum() {
 		String text = "qwertyuiop!";
 		String checksum = PacketUtils.getChecksum(3, text);
@@ -97,7 +106,7 @@ public class PacketUtilsTest {
 	}
 
 	@Test
-	public void hexToIntAndBack() {
+	public void hexToIntAndBack() throws InvalidPacketException {
 		String expected = "0000e0c4";
 		int number = PacketUtils.convertFromHexString(expected);
 		String actual = PacketUtils.convertToHexString(number);
@@ -106,7 +115,7 @@ public class PacketUtilsTest {
 	}
 
 	@Test
-	public void intToHexAndBack() {
+	public void intToHexAndBack() throws InvalidPacketException {
 		int expected = 846205;
 		String hex = PacketUtils.convertToHexString(expected);
 		int actual = PacketUtils.convertFromHexString(hex);

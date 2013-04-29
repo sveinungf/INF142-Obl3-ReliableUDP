@@ -38,11 +38,13 @@ public class PacketSender implements Runnable {
 
 			try {
 				if (timeout) {
-					for (RIPPacket ripPacket : window) {
-						socket.send(ripPacket.getDatagramPacket());
+					if (!window.isEmpty()) {
+						for (RIPPacket ripPacket : window) {
+							socket.send(ripPacket.getDatagramPacket());
+						}
+						System.out.println("[PacketSender] "
+								+ "Timeout, sent all in window");
 					}
-					System.out
-							.println("[PacketSender] Timeout, sent all in window");
 
 					timer.restart();
 				} else if (!packetBuffer.isEmpty() && !windowFull) {

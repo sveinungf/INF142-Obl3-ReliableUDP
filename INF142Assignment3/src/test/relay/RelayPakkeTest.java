@@ -9,7 +9,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
-import no.uib.inf142.assignment3.rip.exception.InvalidSocketAddressException;
+import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 
 import org.junit.Test;
 
@@ -17,7 +17,7 @@ public class RelayPakkeTest {
 
 	@Test
 	public void reformat() throws UnknownHostException, SocketException,
-			InvalidSocketAddressException {
+			InvalidPacketException {
 
 		InetAddress initialtStoredIP = InetAddress.getByName("1.1.1.1");
 		int initialStoredPort = 1;

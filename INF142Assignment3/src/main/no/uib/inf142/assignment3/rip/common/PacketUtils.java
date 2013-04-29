@@ -1,13 +1,14 @@
 package no.uib.inf142.assignment3.rip.common;
 
 import java.math.BigInteger;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import no.uib.inf142.assignment3.rip.exception.InvalidSocketAddressException;
+import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 
 public class PacketUtils {
 
@@ -35,7 +36,9 @@ public class PacketUtils {
 		return String.format("%08x", Integer.valueOf(number));
 	}
 
-	public static int convertFromHexString(String hex) {
+	public static int convertFromHexString(String hex)
+			throws InvalidPacketException {
+
 		return Integer.parseInt(hex, HEXADECIMAL);
 	}
 
@@ -67,8 +70,26 @@ public class PacketUtils {
 		return expected.equals(checksum);
 	}
 
+	public static boolean validChecksumInPacket(String packetData) {
+		int splits = Datafield.SEQUENCE.ordinal() + 1;
+		String[] items = packetData.split(Protocol.PACKET_DELIMITER, splits);
+		String interestingPart = items[splits - 1];
+
+		int lastDelimiter = interestingPart
+				.lastIndexOf(Protocol.PACKET_DELIMITER);
+
+		String toValidate = interestingPart.substring(0, lastDelimiter);
+		String checksum = interestingPart.substring(lastDelimiter + 1).trim();
+
+		return validChecksum(toValidate, checksum);
+	}
+
+	public static String getDataFromPacket(DatagramPacket packet) {
+		return new String(packet.getData(), 0, packet.getLength());
+	}
+
 	public static InetSocketAddress parseSocketAddress(final String ipString,
-			final String portString) throws InvalidSocketAddressException {
+			final String portString) throws InvalidPacketException {
 
 		InetSocketAddress socketAddress = null;
 		String tempIPString = ipString;
@@ -85,9 +106,9 @@ public class PacketUtils {
 
 			socketAddress = new InetSocketAddress(ip, port);
 		} catch (IllegalArgumentException e) {
-			throw new InvalidSocketAddressException("Port not valid");
+			throw new InvalidPacketException("Port not valid");
 		} catch (UnknownHostException e) {
-			throw new InvalidSocketAddressException("IP not valid");
+			throw new InvalidPacketException("IP not valid");
 		}
 
 		return socketAddress;

@@ -40,9 +40,7 @@ public class ACKReceiver implements Runnable {
 
 				socket.receive(packet);
 
-				String data = new String(packet.getData(), 0,
-						packet.getLength());
-
+				String data = PacketUtils.getDataFromPacket(packet);
 				String[] items = data.split(Protocol.PACKET_DELIMITER);
 
 				int datafields = Datafield.values().length;

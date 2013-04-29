@@ -61,21 +61,23 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
 			}
 
 			String seqString = PacketUtils.convertToHexString(nextSequence);
-			String payload = buildDelimitedString(storedAddressHeader,
-					seqString, signal, packetData);
+
+			String staticData = buildDelimitedString(seqString, signal,
+					packetData);
 
 			String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
-					payload);
+					staticData);
 
-			String finalPayload = buildDelimitedString(payload, checksum);
+			String payload = buildDelimitedString(storedAddressHeader,
+					staticData, checksum);
 
 			if (done) {
 				// Need trailing spaces here since the Relay doesn't clean up
 				int trailingSpaces = dataLength - dataLeft.length();
-				finalPayload += PacketUtils.makeSpaces(trailingSpaces);
+				payload += PacketUtils.makeSpaces(trailingSpaces);
 			}
 
-			DatagramPacket packet = makePacket(finalPayload);
+			DatagramPacket packet = makePacket(payload);
 			RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
 
 			packetList.add(ripPacket);

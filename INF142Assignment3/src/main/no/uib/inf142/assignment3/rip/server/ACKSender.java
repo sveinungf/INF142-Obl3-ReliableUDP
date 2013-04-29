@@ -6,8 +6,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Datafield;
@@ -17,7 +15,6 @@ import no.uib.inf142.assignment3.rip.common.PacketGenerator;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
-import no.uib.inf142.assignment3.rip.exception.InvalidSocketAddressException;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class ACKSender implements Closeable, Runnable {
@@ -33,7 +30,7 @@ public class ACKSender implements Closeable, Runnable {
 	public ACKSender(DatagramSocket socket,
 			BlockingQueue<DatagramPacket> packetBuffer,
 			BlockingQueue<String> dataBuffer, int relayListeningPort,
-			int startingSequence) throws IOException {
+			int startingSequence) {
 
 		active = true;
 		expectedSequence = startingSequence;
@@ -51,12 +48,11 @@ public class ACKSender implements Closeable, Runnable {
 				DatagramPacket packet = packetBuffer.take();
 
 				InetAddress relayAddress = packet.getAddress();
-				InetSocketAddress relay = new InetSocketAddress(relayAddress, relayListeningPort);
-				
-				byte[] byteData = packet.getData();
-				String data = new String(byteData, 0, packet.getLength());
+				InetSocketAddress relay = new InetSocketAddress(relayAddress,
+						relayListeningPort);
 
-				String[] items = data.split(Protocol.PACKET_DELIMITER);
+				String payload = PacketUtils.getDataFromPacket(packet);
+				String[] items = payload.split(Protocol.PACKET_DELIMITER);
 
 				int datafields = Datafield.values().length + 1;
 				if (items.length < datafields) {
@@ -64,78 +60,59 @@ public class ACKSender implements Closeable, Runnable {
 							"Packet contains too few datafields");
 				}
 
-				int lastDelimiter = data.lastIndexOf(Protocol.PACKET_DELIMITER);
-				String toValidate = data.substring(0, lastDelimiter);
-				String checksum = items[Datafield.CHECKSUM.ordinal() + 1];
-				boolean checksumOk = PacketUtils.validChecksum(toValidate,
-						checksum);
+				boolean checksumOk = PacketUtils.validChecksumInPacket(payload);
 
 				if (!checksumOk) {
 					throw new InvalidPacketException("Wrong checksum in packet");
 				}
-				// TODO check checksum, then check seqnum, then send ACK
 
 				String sequenceString = items[Datafield.SEQUENCE.ordinal()];
 				int sequence = PacketUtils.convertFromHexString(sequenceString);
 
 				String ipString = items[Datafield.IP.ordinal()];
 				String portString = items[Datafield.PORT.ordinal()];
+
 				InetSocketAddress source = PacketUtils.parseSocketAddress(
 						ipString, portString);
 
 				if (sequence == expectedSequence) {
-					System.out.println("ACK sender: got expected sequence");
+					++expectedSequence;
 
 					PacketGenerator packetGen = new PacketGenerator(source,
 							relay);
-					DatagramPacket ackPacket = packetGen
-							.makeACKPacket(sequence);
-					socket.send(ackPacket);
 
-					String signalString = items[3];
+					DatagramPacket ack = packetGen.makeACKPacket(sequence);
+					socket.send(ack);
+
+					System.out
+							.println("[ACKSender] Got expected sequence, sent ACK");
+
+					String signalString = items[Datafield.SIGNAL.ordinal()];
 					Signal signal = SignalMap.getInstance().getByString(
 							signalString);
-					boolean dataComplete = signal == Signal.REGULAR;
 
-					String d = items[4];
-					stringBuilder.append(d);
+					boolean dataComplete = signal == Signal.REGULAR;
+					String data = items[Datafield.DATA.ordinal()];
+					stringBuilder.append(data);
 
 					if (dataComplete) {
 						dataBuffer.put(stringBuilder.toString());
-
 						stringBuilder = new StringBuilder();
-
-						System.out.println("ACK sender: buffered data");
 					}
 
-					++expectedSequence;
 				} else {
-					System.out
-							.println("ACK sender: got an unexpected sequence");
+					System.out.println("[ACKSender] "
+							+ "Got unexpected sequence, ignored");
 				}
-			} catch (InterruptedException | InvalidPacketException
-					| NumberFormatException e) {
-				e.printStackTrace();
+			} catch (InvalidPacketException e) {
+				System.out.println("[ACKSender] " + e.getMessage());
+			} catch (InterruptedException | IOException
+					| TooShortPacketLengthException e) {
+
 				active = false;
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SocketException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (TooShortPacketLengthException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InvalidSocketAddressException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("[ACKSender] Closing, " + e.getMessage());
 			}
 		}
-
-		System.out.println("sender: done");
 	}
 
 	@Override
