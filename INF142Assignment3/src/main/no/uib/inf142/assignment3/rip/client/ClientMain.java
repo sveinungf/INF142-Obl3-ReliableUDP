@@ -12,26 +12,29 @@ public class ClientMain {
 
 	public static void main(String[] args) {
 		InetAddress localhost = null;
-		
+
 		try {
 			localhost = InetAddress.getByName("127.0.0.1");
 		} catch (UnknownHostException e) {
 		}
-		
-		InetSocketAddress server = new InetSocketAddress(localhost, Protocol.SERVER_LISTENING_PORT);
-		InetSocketAddress relay = new InetSocketAddress(localhost, Protocol.RELAY_LISTENING_PORT);
-		
+
+		InetSocketAddress server = new InetSocketAddress(localhost,
+				Protocol.SERVER_LISTENING_PORT);
+		InetSocketAddress relay = new InetSocketAddress(localhost,
+				Protocol.RELAY_LISTENING_PORT);
+
 		try {
 			RIPSocket ripsocket = new RIPSocket(server, relay);
-			ripsocket.send("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789");
-			//ripsocket.close();
+			ripsocket
+					.send("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789");
+			// ripsocket.close();
 			Scanner kbd = new Scanner(System.in);
-			
+
 			String input = "";
-			
+
 			while (!input.equals("exit")) {
 				input = kbd.nextLine();
-				
+
 				ripsocket.send(input);
 			}
 		} catch (SocketException e) {

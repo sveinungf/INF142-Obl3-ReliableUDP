@@ -53,6 +53,7 @@ public class ACKSender implements Closeable, Runnable {
 
 				String payload = PacketUtils.getDataFromPacket(packet);
 				String[] items = payload.split(Protocol.PACKET_DELIMITER);
+				// TODO data may contain delimiter
 
 				int datafields = Datafield.values().length;
 
