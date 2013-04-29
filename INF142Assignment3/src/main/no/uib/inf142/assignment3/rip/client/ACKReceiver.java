@@ -80,10 +80,11 @@ public class ACKReceiver implements Runnable {
 							+ data + "\"");
 				}
 
-			} catch (InvalidPacketException | NumberFormatException e) {
-				System.out.println(e.getMessage());
+			} catch (InvalidPacketException e) {
+				System.out.println("[ACKReceiver] " + e.getMessage());
 			} catch (IOException e) {
 				active = false;
+				System.out.println("[ACKReceiver] Closing, " + e.getMessage());
 			}
 		}
 	}

@@ -38,6 +38,8 @@ public class PacketReceiver implements Runnable {
 				packetBuffer.put(packet);
 			} catch (IOException | InterruptedException e) {
 				active = false;
+				System.out.println("[PacketReceiver] Closing, "
+						+ e.getMessage());
 			}
 		}
 	}
