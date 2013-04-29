@@ -43,20 +43,21 @@ public class ACKReceiver implements Runnable {
 				String data = PacketUtils.getDataFromPacket(packet);
 				String[] items = data.split(Protocol.PACKET_DELIMITER);
 
-				int datafields = Datafield.values().length;
+				int datafields = Datafield.SIGNAL.ordinal() + 1;
 				if (items.length < datafields) {
 					throw new InvalidPacketException(
 							"Packet contains too few datafields");
 				}
 
 				String sequenceString = items[Datafield.SEQUENCE.ordinal()];
-				String signalString = items[Datafield.SIGNAL.ordinal()];
+				String signalString = items[Datafield.SIGNAL.ordinal()].trim();
 
 				Signal signal = SignalMap.getInstance().getByString(
 						signalString);
 
 				if (signal == null || signal != Signal.ACK) {
-					throw new InvalidPacketException("Invalid signal in packet");
+					throw new InvalidPacketException(
+							"Invalid signal in packet: " + signal);
 				}
 
 				int sequence = PacketUtils.convertFromHexString(sequenceString);

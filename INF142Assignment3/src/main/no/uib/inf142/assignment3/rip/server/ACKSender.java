@@ -54,7 +54,8 @@ public class ACKSender implements Closeable, Runnable {
 				String payload = PacketUtils.getDataFromPacket(packet);
 				String[] items = payload.split(Protocol.PACKET_DELIMITER);
 
-				int datafields = Datafield.values().length + 1;
+				int datafields = Datafield.values().length;
+
 				if (items.length < datafields) {
 					throw new InvalidPacketException(
 							"Packet contains too few datafields");
@@ -84,8 +85,8 @@ public class ACKSender implements Closeable, Runnable {
 					DatagramPacket ack = packetGen.makeACKPacket(sequence);
 					socket.send(ack);
 
-					System.out
-							.println("[ACKSender] Got expected sequence, sent ACK");
+					System.out.println("[ACKSender] Sent: \""
+							+ PacketUtils.getDataFromPacket(ack) + "\"");
 
 					String signalString = items[Datafield.SIGNAL.ordinal()];
 					Signal signal = SignalMap.getInstance().getByString(

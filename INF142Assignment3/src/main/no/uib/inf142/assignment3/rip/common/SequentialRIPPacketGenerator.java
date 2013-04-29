@@ -71,12 +71,6 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
 			String payload = buildDelimitedString(storedAddressHeader,
 					staticData, checksum);
 
-			if (done) {
-				// Need trailing spaces here since the Relay doesn't clean up
-				int trailingSpaces = dataLength - dataLeft.length();
-				payload += PacketUtils.makeSpaces(trailingSpaces);
-			}
-
 			DatagramPacket packet = makePacket(payload);
 			RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
 

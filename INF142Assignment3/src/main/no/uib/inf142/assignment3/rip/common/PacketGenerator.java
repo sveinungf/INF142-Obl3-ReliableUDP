@@ -34,6 +34,11 @@ public class PacketGenerator {
 			throws TooShortPacketLengthException {
 
 		int packetLength = Protocol.MAX_PACKET_LENGTH;
+
+		// Need trailing spaces here since the Relay doesn't clean up
+		int trailingSpaces = packetLength - payload.length();
+		payload += PacketUtils.makeSpaces(trailingSpaces);
+
 		byte[] byteData = payload.getBytes();
 
 		if (byteData.length > packetLength) {
