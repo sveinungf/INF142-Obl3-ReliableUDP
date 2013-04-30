@@ -9,7 +9,9 @@ import java.util.Scanner;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 
 public class ClientMain {
-
+	// TODO checksum on ACK packets
+	// TODO connection setup
+	// TODO connection tear-down
 	public static void main(String[] args) {
 		InetAddress localhost = null;
 

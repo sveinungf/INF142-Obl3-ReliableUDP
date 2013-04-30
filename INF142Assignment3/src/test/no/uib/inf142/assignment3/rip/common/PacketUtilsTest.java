@@ -131,4 +131,43 @@ public class PacketUtilsTest {
 
 		assertEquals(expected, actual);
 	}
+
+	@Test
+	public void getFieldsNormalData() {
+		String data = "/127.0.0.1;55555;00000001;P;lashdf;d9e        ";
+		String[] datafields = PacketUtils.getFields(data);
+
+		assertEquals("/127.0.0.1", datafields[0]);
+		assertEquals("55555", datafields[1]);
+		assertEquals("00000001", datafields[2]);
+		assertEquals("P", datafields[3]);
+		assertEquals("lashdf", datafields[4]);
+		assertEquals("d9e", datafields[5]);
+	}
+
+	@Test
+	public void getFieldsDelimiterInData() {
+		String data = "/127.0.0.1;55555;00000001;P;las;hdf;d9e        ";
+		String[] datafields = PacketUtils.getFields(data);
+
+		assertEquals("/127.0.0.1", datafields[0]);
+		assertEquals("55555", datafields[1]);
+		assertEquals("00000001", datafields[2]);
+		assertEquals("P", datafields[3]);
+		assertEquals("las;hdf", datafields[4]);
+		assertEquals("d9e", datafields[5]);
+	}
+
+	@Test
+	public void getFieldsSpaceInData() {
+		String data = "/127.0.0.1;55555;00000001;P;  las   ;d9e        ";
+		String[] datafields = PacketUtils.getFields(data);
+
+		assertEquals("/127.0.0.1", datafields[0]);
+		assertEquals("55555", datafields[1]);
+		assertEquals("00000001", datafields[2]);
+		assertEquals("P", datafields[3]);
+		assertEquals("  las   ", datafields[4]);
+		assertEquals("d9e", datafields[5]);
+	}
 }

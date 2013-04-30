@@ -104,8 +104,3 @@ public class RIPSocket implements Closeable {
 		socket.close();
 	}
 }
-
-// TODO
-// The RIPsocket should also notify the user of errors and other situations that
-// can occur (e.g. server not available, lost connection, the other party closed
-// connection, or similar), for example by throwing an exception.

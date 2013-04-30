@@ -88,6 +88,28 @@ public class PacketUtils {
 		return new String(packet.getData(), 0, packet.getLength());
 	}
 
+	public static String[] getFields(String payload) {
+		String delimiter = Protocol.PACKET_DELIMITER;
+		String[] items = payload.split(delimiter, 5);
+		String dataAndChecksum = items[items.length - 1];
+		int lastDelimiter = dataAndChecksum.lastIndexOf(delimiter);
+		String data = dataAndChecksum.substring(0, lastDelimiter);
+		String checksum = dataAndChecksum.substring(lastDelimiter + 1);
+		String[] fields = new String[items.length + 1];
+
+		int i = 0;
+		while (i < items.length - 1) {
+			fields[i] = items[i];
+			++i;
+		}
+
+		fields[i] = data;
+		++i;
+		fields[i] = checksum.trim();
+
+		return fields;
+	}
+
 	public static InetSocketAddress parseSocketAddress(final String ipString,
 			final String portString) throws InvalidPacketException {
 

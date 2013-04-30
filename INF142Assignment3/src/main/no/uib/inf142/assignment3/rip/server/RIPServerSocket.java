@@ -1,7 +1,6 @@
 package no.uib.inf142.assignment3.rip.server;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -27,10 +26,11 @@ public class RIPServerSocket implements Closeable {
 	 *            - The port number this server will listen on.
 	 * @param relay
 	 *            - The IP address and port which the relay listens on.
-	 * @throws IOException
-	 *             //TODO
+	 * @throws SocketException
+	 *             if the socket could not be opened, or the socket could not
+	 *             bind to the specified local port.
 	 */
-	public RIPServerSocket(int port, int relayPort) throws IOException {
+	public RIPServerSocket(int port, int relayPort) throws SocketException {
 
 		int startingSequence = Protocol.SEQUENCE_START;
 		dataBuffer = new LinkedBlockingQueue<String>();
@@ -93,8 +93,3 @@ public class RIPServerSocket implements Closeable {
 		socket.close();
 	}
 }
-
-// - The RIPServerSocket should also notify the user of errors and other
-// situations that can occur (e.g. lost connection, bad data, data out of order
-// (really should not happen), the other party closed connection, or similar),
-// for example by throwing an exception.

@@ -1,10 +1,8 @@
 package no.uib.inf142.assignment3.rip.server;
 
-import java.io.IOException;
+import java.net.SocketException;
 
-import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.Protocol;
-import no.uib.inf142.assignment3.rip.common.PacketGenerator;
 
 public class ServerMain {
 
@@ -18,8 +16,7 @@ public class ServerMain {
 				System.out.println("RIPServerSocket got: "
 						+ ripserver.receive());
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+		} catch (SocketException e) {
 			e.printStackTrace();
 		}
 	}
