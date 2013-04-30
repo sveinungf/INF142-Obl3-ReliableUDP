@@ -63,15 +63,16 @@ public class RIPSocket implements Closeable {
 	 * 
 	 * @param string
 	 *            - The string to send.
+	 * @throws SocketException 
 	 */
-	public void send(String string) {
+	public void send(String string) throws SocketException {
 		if (socket.isClosed()) {
-			// TODO throw exception
+			throw new SocketException("Lost connection");
 		}
 
 		if (!ackReceiverThread.isAlive() || !packetMakerThread.isAlive()
 				|| !packetSenderThread.isAlive()) {
-			// TODO throw exception
+			throw new SocketException("");
 		}
 
 		try {

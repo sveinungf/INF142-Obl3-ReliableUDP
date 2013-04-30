@@ -25,9 +25,6 @@ public class ClientMain {
 
 		try {
 			RIPSocket ripsocket = new RIPSocket(server, relay);
-			ripsocket
-					.send("abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789");
-			// ripsocket.close();
 			Scanner kbd = new Scanner(System.in);
 
 			String input = "";
@@ -37,6 +34,7 @@ public class ClientMain {
 
 				ripsocket.send(input);
 			}
+			ripsocket.close();
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
