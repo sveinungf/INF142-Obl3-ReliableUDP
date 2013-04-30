@@ -7,20 +7,19 @@ import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
+import no.uib.inf142.assignment3.rip.common.RIPThread;
 
-public class PacketSender implements Runnable {
+public class PacketSenderThread extends RIPThread {
 
-	private boolean active;
 	private BlockingQueue<RIPPacket> packetBuffer;
 	private BlockingQueue<RIPPacket> window;
 	private DatagramSocket socket;
 	private SimpleTimer timer;
 
-	public PacketSender(DatagramSocket socket,
+	public PacketSenderThread(DatagramSocket socket,
 			BlockingQueue<RIPPacket> packetBuffer,
 			BlockingQueue<RIPPacket> window) {
 
-		active = true;
 		this.window = window;
 		this.packetBuffer = packetBuffer;
 		this.socket = socket;
@@ -67,6 +66,7 @@ public class PacketSender implements Runnable {
 				}
 			} catch (IOException | InterruptedException e) {
 				active = false;
+				exception = e;
 			}
 		}
 	}

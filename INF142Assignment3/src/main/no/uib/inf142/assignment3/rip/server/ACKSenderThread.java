@@ -1,6 +1,5 @@
 package no.uib.inf142.assignment3.rip.server;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -12,14 +11,14 @@ import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.PacketGenerator;
+import no.uib.inf142.assignment3.rip.common.RIPThread;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
-public class ACKSender implements Closeable, Runnable {
+public class ACKSenderThread extends RIPThread {
 
-	private boolean active;
 	private int expectedSequence;
 	private int relayListeningPort;
 	private BlockingQueue<DatagramPacket> packetBuffer;
@@ -27,12 +26,11 @@ public class ACKSender implements Closeable, Runnable {
 	private DatagramSocket socket;
 	private StringBuilder stringBuilder;
 
-	public ACKSender(DatagramSocket socket,
+	public ACKSenderThread(DatagramSocket socket,
 			BlockingQueue<DatagramPacket> packetBuffer,
 			BlockingQueue<String> dataBuffer, int relayListeningPort,
 			int startingSequence) {
 
-		active = true;
 		expectedSequence = startingSequence;
 		this.relayListeningPort = relayListeningPort;
 		this.packetBuffer = packetBuffer;
@@ -115,10 +113,5 @@ public class ACKSender implements Closeable, Runnable {
 				System.out.println("[ACKSender] Closing, " + e.getMessage());
 			}
 		}
-	}
-
-	@Override
-	public void close() {
-		socket.close();
 	}
 }

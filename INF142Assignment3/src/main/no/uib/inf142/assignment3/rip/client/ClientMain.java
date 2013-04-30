@@ -34,6 +34,7 @@ public class ClientMain {
 
 				ripsocket.send(input);
 			}
+			kbd.close();
 			ripsocket.close();
 		} catch (SocketException e) {
 			e.printStackTrace();

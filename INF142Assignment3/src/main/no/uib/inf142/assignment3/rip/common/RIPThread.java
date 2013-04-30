@@ -7,7 +7,7 @@ public abstract class RIPThread extends Thread {
 
 	public RIPThread() {
 		active = true;
-		exception = null;
+		exception = new Exception("An error occured");
 	}
 
 	public Exception getException() {

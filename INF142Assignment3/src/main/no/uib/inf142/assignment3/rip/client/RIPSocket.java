@@ -9,14 +9,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
+import no.uib.inf142.assignment3.rip.common.RIPThread;
 
 public class RIPSocket implements Closeable {
 
 	private BlockingQueue<String> dataBuffer;
 	private DatagramSocket socket;
-	private Thread ackReceiverThread;
-	private Thread packetMakerThread;
-	private Thread packetSenderThread;
+	private RIPThread ackReceiverThread;
+	private RIPThread packetMakerThread;
+	private RIPThread packetSenderThread;
 
 	/**
 	 * Constructs a {@code RIPSocket} object, and which similarly to a
@@ -40,18 +41,14 @@ public class RIPSocket implements Closeable {
 		BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
 		BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-		ACKReceiver ackReceiver = new ACKReceiver(window, socket,
+		ackReceiverThread = new ACKReceiverThread(window, socket,
 				startingSequence);
 
-		PacketMaker packetMaker = new PacketMaker(dataBuffer, packetBuffer,
+		packetMakerThread = new PacketMakerThread(dataBuffer, packetBuffer,
 				server, relay, startingSequence);
 
-		PacketSender packetSender = new PacketSender(socket, packetBuffer,
+		packetSenderThread = new PacketSenderThread(socket, packetBuffer,
 				window);
-
-		ackReceiverThread = new Thread(ackReceiver);
-		packetMakerThread = new Thread(packetMaker);
-		packetSenderThread = new Thread(packetSender);
 
 		ackReceiverThread.start();
 		packetMakerThread.start();
@@ -63,16 +60,28 @@ public class RIPSocket implements Closeable {
 	 * 
 	 * @param string
 	 *            - The string to send.
-	 * @throws SocketException 
+	 * @throws SocketException
+	 *             if the socket is closed, or any of the threads this
+	 *             {@code RIPSocket} started have died.
 	 */
 	public void send(String string) throws SocketException {
 		if (socket.isClosed()) {
 			throw new SocketException("Lost connection");
 		}
 
-		if (!ackReceiverThread.isAlive() || !packetMakerThread.isAlive()
-				|| !packetSenderThread.isAlive()) {
-			throw new SocketException("");
+		if (!ackReceiverThread.isAlive()) {
+			String error = ackReceiverThread.getException().getMessage();
+			throw new SocketException(error);
+		}
+
+		if (!packetMakerThread.isAlive()) {
+			String error = packetMakerThread.getException().getMessage();
+			throw new SocketException(error);
+		}
+
+		if (!packetSenderThread.isAlive()) {
+			String error = packetSenderThread.getException().getMessage();
+			throw new SocketException(error);
 		}
 
 		try {

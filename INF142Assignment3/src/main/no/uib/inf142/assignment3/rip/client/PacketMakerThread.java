@@ -9,13 +9,13 @@ import no.uib.inf142.assignment3.rip.common.RIPThread;
 import no.uib.inf142.assignment3.rip.common.SequentialRIPPacketGenerator;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
-public class PacketMaker extends RIPThread {
+public class PacketMakerThread extends RIPThread {
 
 	private BlockingQueue<String> dataBuffer;
 	private BlockingQueue<RIPPacket> packetBuffer;
 	private SequentialRIPPacketGenerator packetGen;
 
-	public PacketMaker(BlockingQueue<String> dataBuffer,
+	public PacketMakerThread(BlockingQueue<String> dataBuffer,
 			BlockingQueue<RIPPacket> packetBuffer,
 			InetSocketAddress finalDestination, InetSocketAddress relay,
 			int startingSequence) {
@@ -40,6 +40,7 @@ public class PacketMaker extends RIPThread {
 				}
 			} catch (InterruptedException | TooShortPacketLengthException e) {
 				active = false;
+				exception = e;
 			}
 		}
 	}

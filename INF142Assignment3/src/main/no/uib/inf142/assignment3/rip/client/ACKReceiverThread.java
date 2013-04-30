@@ -10,21 +10,20 @@ import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
+import no.uib.inf142.assignment3.rip.common.RIPThread;
 import no.uib.inf142.assignment3.rip.common.Signal;
 import no.uib.inf142.assignment3.rip.common.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 
-public class ACKReceiver implements Runnable {
+public class ACKReceiverThread extends RIPThread {
 
-	private boolean active;
 	private int expectedSequence;
 	private BlockingQueue<RIPPacket> window;
 	private DatagramSocket socket;
 
-	public ACKReceiver(BlockingQueue<RIPPacket> window, DatagramSocket socket,
+	public ACKReceiverThread(BlockingQueue<RIPPacket> window, DatagramSocket socket,
 			int startingSequence) {
 
-		active = true;
 		expectedSequence = startingSequence;
 		this.window = window;
 		this.socket = socket;
@@ -85,7 +84,7 @@ public class ACKReceiver implements Runnable {
 				System.out.println("[ACKReceiver] " + e.getMessage());
 			} catch (IOException e) {
 				active = false;
-				System.out.println("[ACKReceiver] Closing, " + e.getMessage());
+				exception = e;
 			}
 		}
 	}
