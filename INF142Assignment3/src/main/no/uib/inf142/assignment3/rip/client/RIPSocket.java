@@ -53,8 +53,14 @@ public class RIPSocket implements Closeable {
 		ackReceiverThread.start();
 		packetMakerThread.start();
 		packetSenderThread.start();
+		
+		//connectionSetup();
 	}
 
+	private void connectionSetup() {
+		
+	}
+	
 	/**
 	 * Sends the given {@code String} object on the connection.
 	 * 
