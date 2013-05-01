@@ -9,7 +9,6 @@ import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
-import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.PacketGenerator;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
 import no.uib.inf142.assignment3.rip.common.Signal;
@@ -50,12 +49,11 @@ public class ACKSenderThread extends RIPThread {
 						relayListeningPort);
 
 				String payload = PacketUtils.getDataFromPacket(packet);
-				String[] items = payload.split(Protocol.PACKET_DELIMITER);
-				// TODO data may contain delimiter
+				String[] datafields = PacketUtils.getDatafields(payload);
 
-				int datafields = Datafield.values().length;
+				int expectedDatafields = Datafield.values().length;
 
-				if (items.length < datafields) {
+				if (datafields.length < expectedDatafields) {
 					throw new InvalidPacketException(
 							"Packet contains too few datafields");
 				}
@@ -66,11 +64,11 @@ public class ACKSenderThread extends RIPThread {
 					throw new InvalidPacketException("Wrong checksum in packet");
 				}
 
-				String sequenceString = items[Datafield.SEQUENCE.ordinal()];
+				String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
 				int sequence = PacketUtils.convertFromHexString(sequenceString);
 
-				String ipString = items[Datafield.IP.ordinal()];
-				String portString = items[Datafield.PORT.ordinal()];
+				String ipString = datafields[Datafield.IP.ordinal()];
+				String portString = datafields[Datafield.PORT.ordinal()];
 
 				InetSocketAddress source = PacketUtils.parseSocketAddress(
 						ipString, portString);
@@ -87,12 +85,12 @@ public class ACKSenderThread extends RIPThread {
 					System.out.println("[ACKSender] Sent: \""
 							+ PacketUtils.getDataFromPacket(ack) + "\"");
 
-					String signalString = items[Datafield.SIGNAL.ordinal()];
+					String signalString = datafields[Datafield.SIGNAL.ordinal()];
 					Signal signal = SignalMap.getInstance().getByString(
 							signalString);
 
 					boolean dataComplete = signal == Signal.REGULAR;
-					String data = items[Datafield.DATA.ordinal()];
+					String data = datafields[Datafield.DATA.ordinal()];
 					stringBuilder.append(data);
 
 					if (dataComplete) {

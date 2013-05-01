@@ -2,7 +2,7 @@ package no.uib.inf142.assignment3.rip.common;
 
 public class Protocol {
 
-	public static final String PACKET_DELIMITER = ";";
+	public static final String DATAFIELD_DELIMITER = ";";
 
 	public static final int MAX_PACKET_LENGTH = 45;
 	public static final int CHECKSUM_LENGTH = 3;

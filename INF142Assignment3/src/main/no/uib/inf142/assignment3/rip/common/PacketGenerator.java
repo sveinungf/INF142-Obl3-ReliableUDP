@@ -51,7 +51,7 @@ public class PacketGenerator {
 	}
 
 	protected static String buildDelimitedString(String... values) {
-		return PacketUtils.buildDelimitedString(Protocol.PACKET_DELIMITER,
+		return PacketUtils.buildDelimitedString(Protocol.DATAFIELD_DELIMITER,
 				values);
 	}
 }

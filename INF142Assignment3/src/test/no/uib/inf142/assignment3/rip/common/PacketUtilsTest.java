@@ -64,8 +64,15 @@ public class PacketUtilsTest {
 	}
 
 	@Test
-	public void validChecksumInPacket() {
+	public void validChecksumInNormalPacket() {
 		String packetData = "/127.0.0.1;62428;00000001;P;hijklmn;d4c  ";
+
+		assertTrue(PacketUtils.validChecksumInPacket(packetData));
+	}
+	
+	@Test
+	public void validChecksumInPacketWithDelimiter() {
+		String packetData = "/127.0.0.1;62428;00000001;P;  hi;jklmn;  ;6b2  ";
 
 		assertTrue(PacketUtils.validChecksumInPacket(packetData));
 	}
@@ -135,7 +142,7 @@ public class PacketUtilsTest {
 	@Test
 	public void getFieldsNormalData() {
 		String data = "/127.0.0.1;55555;00000001;P;lashdf;d9e        ";
-		String[] datafields = PacketUtils.getFields(data);
+		String[] datafields = PacketUtils.getDatafields(data);
 
 		assertEquals("/127.0.0.1", datafields[0]);
 		assertEquals("55555", datafields[1]);
@@ -148,7 +155,7 @@ public class PacketUtilsTest {
 	@Test
 	public void getFieldsDelimiterInData() {
 		String data = "/127.0.0.1;55555;00000001;P;las;hdf;d9e        ";
-		String[] datafields = PacketUtils.getFields(data);
+		String[] datafields = PacketUtils.getDatafields(data);
 
 		assertEquals("/127.0.0.1", datafields[0]);
 		assertEquals("55555", datafields[1]);
@@ -160,14 +167,14 @@ public class PacketUtilsTest {
 
 	@Test
 	public void getFieldsSpaceInData() {
-		String data = "/127.0.0.1;55555;00000001;P;  las   ;d9e        ";
-		String[] datafields = PacketUtils.getFields(data);
+		String data = "/127.0.0.1;55555;00000001;P;  ;la s;   ;d9e        ";
+		String[] datafields = PacketUtils.getDatafields(data);
 
 		assertEquals("/127.0.0.1", datafields[0]);
 		assertEquals("55555", datafields[1]);
 		assertEquals("00000001", datafields[2]);
 		assertEquals("P", datafields[3]);
-		assertEquals("  las   ", datafields[4]);
+		assertEquals("  ;la s;   ", datafields[4]);
 		assertEquals("d9e", datafields[5]);
 	}
 }

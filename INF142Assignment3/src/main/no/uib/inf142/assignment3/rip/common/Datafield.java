@@ -20,7 +20,7 @@ public enum Datafield {
 	}
 
 	public static int calculateDataLength() {
-		int delimiterLength = Protocol.PACKET_DELIMITER.length();
+		int delimiterLength = Protocol.DATAFIELD_DELIMITER.length();
 		int dataLength = Protocol.MAX_PACKET_LENGTH;
 
 		for (Datafield datafield : Datafield.values()) {

@@ -40,7 +40,7 @@ public class ACKReceiverThread extends RIPThread {
 				socket.receive(packet);
 
 				String data = PacketUtils.getDataFromPacket(packet);
-				String[] items = data.split(Protocol.PACKET_DELIMITER);
+				String[] items = data.split(Protocol.DATAFIELD_DELIMITER);
 
 				int datafields = Datafield.SIGNAL.ordinal() + 1;
 				if (items.length < datafields) {

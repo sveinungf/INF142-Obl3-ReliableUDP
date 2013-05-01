@@ -72,11 +72,11 @@ public class PacketUtils {
 
 	public static boolean validChecksumInPacket(String packetData) {
 		int splits = Datafield.SEQUENCE.ordinal() + 1;
-		String[] items = packetData.split(Protocol.PACKET_DELIMITER, splits);
+		String[] items = packetData.split(Protocol.DATAFIELD_DELIMITER, splits);
 		String interestingPart = items[splits - 1];
 
 		int lastDelimiter = interestingPart
-				.lastIndexOf(Protocol.PACKET_DELIMITER);
+				.lastIndexOf(Protocol.DATAFIELD_DELIMITER);
 
 		String toValidate = interestingPart.substring(0, lastDelimiter);
 		String checksum = interestingPart.substring(lastDelimiter + 1).trim();
@@ -88,16 +88,27 @@ public class PacketUtils {
 		return new String(packet.getData(), 0, packet.getLength());
 	}
 
-	public static String[] getFields(String payload) {
-		String delimiter = Protocol.PACKET_DELIMITER;
-		String[] items = payload.split(delimiter, 5);
+	/**
+	 * Splits the packet payload into an array of datafields. The actual data
+	 * may contain the datafield delimiter.
+	 * 
+	 * @param payload
+	 *            - the packet payload.
+	 * @return the array of datafields.
+	 */
+	public static String[] getDatafields(String payload) {
+		String delimiter = Protocol.DATAFIELD_DELIMITER;
+		int numberOfFields = Datafield.values().length;
+		String[] items = payload.split(delimiter, numberOfFields - 1);
+
 		String dataAndChecksum = items[items.length - 1];
 		int lastDelimiter = dataAndChecksum.lastIndexOf(delimiter);
 		String data = dataAndChecksum.substring(0, lastDelimiter);
 		String checksum = dataAndChecksum.substring(lastDelimiter + 1);
-		String[] fields = new String[items.length + 1];
 
 		int i = 0;
+		String[] fields = new String[items.length + 1];
+
 		while (i < items.length - 1) {
 			fields[i] = items[i];
 			++i;
