@@ -13,100 +13,100 @@ import no.uib.inf142.assignment3.rip.common.RIPThread;
 
 public class RIPSocket implements Closeable {
 
-	private BlockingQueue<String> dataBuffer;
-	private DatagramSocket socket;
-	private RIPThread ackReceiverThread;
-	private RIPThread packetMakerThread;
-	private RIPThread packetSenderThread;
+    private BlockingQueue<String> dataBuffer;
+    private DatagramSocket socket;
+    private RIPThread ackReceiverThread;
+    private RIPThread packetMakerThread;
+    private RIPThread packetSenderThread;
 
-	/**
-	 * Constructs a {@code RIPSocket} object, and which similarly to a
-	 * {@code Socket} constructor creates a {@code RIPSocket} object already
-	 * connected to a {@code RIPServerSocket} at a specified location.
-	 * 
-	 * @param server
-	 *            - The IP address and port which the server listens on.
-	 * @param relay
-	 *            - The IP address and port which the relay listens on.
-	 * @throws SocketException
-	 *             if the socket could not be opened.
-	 */
-	public RIPSocket(InetSocketAddress server, InetSocketAddress relay)
-			throws SocketException {
+    /**
+     * Constructs a {@code RIPSocket} object, and which similarly to a
+     * {@code Socket} constructor creates a {@code RIPSocket} object already
+     * connected to a {@code RIPServerSocket} at a specified location.
+     * 
+     * @param server
+     *            - The IP address and port which the server listens on.
+     * @param relay
+     *            - The IP address and port which the relay listens on.
+     * @throws SocketException
+     *             if the socket could not be opened.
+     */
+    public RIPSocket(InetSocketAddress server, InetSocketAddress relay)
+            throws SocketException {
 
-		int startingSequence = Protocol.SEQUENCE_START;
-		dataBuffer = new LinkedBlockingQueue<String>();
-		socket = new DatagramSocket();
+        int startingSequence = Protocol.SEQUENCE_START;
+        dataBuffer = new LinkedBlockingQueue<String>();
+        socket = new DatagramSocket();
 
-		BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
-		BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
+        BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
+        BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-		ackReceiverThread = new ACKReceiverThread(window, socket,
-				startingSequence);
+        ackReceiverThread = new ACKReceiverThread(window, socket,
+                startingSequence);
 
-		packetMakerThread = new PacketMakerThread(dataBuffer, packetBuffer,
-				server, relay, startingSequence);
+        packetMakerThread = new PacketMakerThread(dataBuffer, packetBuffer,
+                server, relay, startingSequence);
 
-		packetSenderThread = new PacketSenderThread(socket, packetBuffer,
-				window);
+        packetSenderThread = new PacketSenderThread(socket, packetBuffer,
+                window);
 
-		ackReceiverThread.start();
-		packetMakerThread.start();
-		packetSenderThread.start();
-		
-		//connectionSetup();
-	}
+        ackReceiverThread.start();
+        packetMakerThread.start();
+        packetSenderThread.start();
 
-	private void connectionSetup() {
-		
-	}
-	
-	/**
-	 * Sends the given {@code String} object on the connection.
-	 * 
-	 * @param string
-	 *            - The string to send.
-	 * @throws SocketException
-	 *             if the socket is closed, or any of the threads this
-	 *             {@code RIPSocket} started have died.
-	 */
-	public void send(String string) throws SocketException {
-		if (socket.isClosed()) {
-			throw new SocketException("Lost connection");
-		}
+        // connectionSetup();
+    }
 
-		if (!ackReceiverThread.isAlive()) {
-			String error = ackReceiverThread.getException().getMessage();
-			throw new SocketException(error);
-		}
+    private void connectionSetup() {
 
-		if (!packetMakerThread.isAlive()) {
-			String error = packetMakerThread.getException().getMessage();
-			throw new SocketException(error);
-		}
+    }
 
-		if (!packetSenderThread.isAlive()) {
-			String error = packetSenderThread.getException().getMessage();
-			throw new SocketException(error);
-		}
+    /**
+     * Sends the given {@code String} object on the connection.
+     * 
+     * @param string
+     *            - The string to send.
+     * @throws SocketException
+     *             if the socket is closed, or any of the threads this
+     *             {@code RIPSocket} started have died.
+     */
+    public void send(String string) throws SocketException {
+        if (socket.isClosed()) {
+            throw new SocketException("Lost connection");
+        }
 
-		try {
-			dataBuffer.put(string);
-		} catch (InterruptedException e) {
-		}
-	}
+        if (!ackReceiverThread.isAlive()) {
+            String error = ackReceiverThread.getException().getMessage();
+            throw new SocketException(error);
+        }
 
-	/**
-	 * Closes this socket.
-	 * 
-	 * @see java.io.Closeable#close()
-	 */
-	@Override
-	public void close() {
-		packetMakerThread.interrupt();
-		packetSenderThread.interrupt();
-		ackReceiverThread.interrupt();
+        if (!packetMakerThread.isAlive()) {
+            String error = packetMakerThread.getException().getMessage();
+            throw new SocketException(error);
+        }
 
-		socket.close();
-	}
+        if (!packetSenderThread.isAlive()) {
+            String error = packetSenderThread.getException().getMessage();
+            throw new SocketException(error);
+        }
+
+        try {
+            dataBuffer.put(string);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    /**
+     * Closes this socket.
+     * 
+     * @see java.io.Closeable#close()
+     */
+    @Override
+    public final void close() {
+        packetMakerThread.interrupt();
+        packetSenderThread.interrupt();
+        ackReceiverThread.interrupt();
+
+        socket.close();
+    }
 }

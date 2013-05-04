@@ -86,7 +86,7 @@ public class RIPServerSocket implements Closeable {
 	 * @see java.io.Closeable#close()
 	 */
 	@Override
-	public void close() {
+    public final void close() {
 		ackSenderThread.interrupt();
 		packetReceiverThread.interrupt();
 
