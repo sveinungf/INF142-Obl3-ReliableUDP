@@ -1,6 +1,7 @@
 package no.uib.inf142.assignment3.rip.client;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -10,6 +11,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
+import no.uib.inf142.assignment3.rip.common.SequentialRIPPacketGenerator;
+import no.uib.inf142.assignment3.rip.common.Signal;
+import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPSocket implements Closeable {
 
@@ -18,6 +22,7 @@ public class RIPSocket implements Closeable {
     private RIPThread ackReceiverThread;
     private RIPThread packetMakerThread;
     private RIPThread packetSenderThread;
+    private int sequence;
 
     /**
      * Constructs a {@code RIPSocket} object, and which similarly to a
@@ -34,18 +39,19 @@ public class RIPSocket implements Closeable {
     public RIPSocket(final InetSocketAddress server,
             final InetSocketAddress relay) throws SocketException {
 
-        int startingSequence = Protocol.SEQUENCE_START;
         dataBuffer = new LinkedBlockingQueue<String>();
         socket = new DatagramSocket();
+        sequence = Protocol.SEQUENCE_START;
 
         BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
         BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-        ackReceiverThread = new ACKReceiverThread(window, socket,
-                startingSequence);
+        connectionSetup(server, relay);
+
+        ackReceiverThread = new ACKReceiverThread(window, socket, sequence);
 
         packetMakerThread = new PacketMakerThread(dataBuffer, packetBuffer,
-                server, relay, startingSequence);
+                server, relay, sequence);
 
         packetSenderThread = new PacketSenderThread(socket, packetBuffer,
                 window);
@@ -53,12 +59,24 @@ public class RIPSocket implements Closeable {
         ackReceiverThread.start();
         packetMakerThread.start();
         packetSenderThread.start();
-
-        connectionSetup();
     }
 
-    private void connectionSetup() {
+    private void connectionSetup(final InetSocketAddress server,
+            final InetSocketAddress relay) {
 
+        SequentialRIPPacketGenerator packetGen = new SequentialRIPPacketGenerator(
+                server, relay, sequence);
+
+        try {
+            RIPPacket syn = packetGen.makeSignalPacket(Signal.SYN);
+            socket.send(syn.getDatagramPacket());
+        } catch (TooShortPacketLengthException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     /**

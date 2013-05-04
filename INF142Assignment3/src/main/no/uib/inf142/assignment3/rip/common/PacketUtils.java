@@ -100,27 +100,37 @@ public class PacketUtils {
      */
     public static String[] getDatafields(final String payload) {
         String delimiter = Protocol.DATAFIELD_DELIMITER;
-        int numberOfFields = Datafield.values().length;
-        String[] items = payload.split(delimiter, numberOfFields - 1);
+        int dataFields = Datafield.values().length;
+        int signalPacketFields = Datafield.DATA.ordinal();
 
-        String dataAndChecksum = items[items.length - 1];
-        int lastDelimiter = dataAndChecksum.lastIndexOf(delimiter);
-        String data = dataAndChecksum.substring(0, lastDelimiter);
-        String checksum = dataAndChecksum.substring(lastDelimiter + 1);
+        String[] items = payload.split(delimiter, dataFields - 1);
+        int lastIndex = items.length - 1;
 
-        int i = 0;
-        String[] fields = new String[items.length + 1];
+        if (items.length > signalPacketFields) {
+            String dataAndChecksum = items[lastIndex];
+            int lastDelimiter = dataAndChecksum.lastIndexOf(delimiter);
+            String data = dataAndChecksum.substring(0, lastDelimiter);
+            String checksum = dataAndChecksum.substring(lastDelimiter + 1);
 
-        while (i < items.length - 1) {
-            fields[i] = items[i];
+            int i = 0;
+            String[] fields = new String[items.length + 1];
+
+            while (i < lastIndex) {
+                fields[i] = items[i];
+                ++i;
+            }
+
+            fields[i] = data;
             ++i;
+            fields[i] = checksum.trim();
+
+            return fields;
+        } else if (items.length == signalPacketFields) {
+            items[lastIndex] = items[lastIndex].trim();
+            return items;
+        } else {
+            return null;
         }
-
-        fields[i] = data;
-        ++i;
-        fields[i] = checksum.trim();
-
-        return fields;
     }
 
     public static InetSocketAddress parseSocketAddress(final String ipString,
