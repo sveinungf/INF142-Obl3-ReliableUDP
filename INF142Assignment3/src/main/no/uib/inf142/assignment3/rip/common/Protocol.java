@@ -1,14 +1,6 @@
 package no.uib.inf142.assignment3.rip.common;
 
-import java.nio.charset.Charset;
-
 public class Protocol {
-
-    /**
-     * The charset to be used when converting String objects to and from byte
-     * arrays.
-     */
-    public static final Charset CHARSET = Charset.forName("UTF-8");
 
     /**
      * The delimiter which separates the datafields in the packetdata.

@@ -51,7 +51,7 @@ public class PacketUtils {
 
         try {
             MessageDigest md = MessageDigest.getInstance("md5");
-            byte[] digest = md.digest(data.getBytes(Protocol.CHARSET));
+            byte[] digest = md.digest(data.getBytes());
             BigInteger number = new BigInteger(1, digest);
             checksum = number.toString(HEXADECIMAL);
         } catch (NoSuchAlgorithmException e) {

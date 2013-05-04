@@ -39,7 +39,7 @@ public class PacketGenerator {
         int trailingSpaces = packetLength - data.length();
         String payload = data + PacketUtils.makeSpaces(trailingSpaces);
 
-        byte[] byteData = payload.getBytes(Protocol.CHARSET);
+        byte[] byteData = payload.getBytes();
 
         if (byteData.length > packetLength) {
             throw new TooShortPacketLengthException("Packet length "

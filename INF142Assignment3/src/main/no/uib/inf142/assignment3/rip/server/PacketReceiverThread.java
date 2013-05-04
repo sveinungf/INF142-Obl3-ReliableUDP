@@ -30,7 +30,7 @@ public class PacketReceiverThread extends RIPThread {
             try {
                 socket.receive(packet);
                 String data = new String(packet.getData(), 0,
-                        packet.getLength(), Protocol.CHARSET);
+                        packet.getLength());
                 System.out.println("[PacketReceiver] Received: \"" + data
                         + "\"");
 
