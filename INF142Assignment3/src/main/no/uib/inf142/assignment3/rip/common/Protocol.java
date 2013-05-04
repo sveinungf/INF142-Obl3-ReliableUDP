@@ -10,7 +10,7 @@ public class Protocol {
     /**
      * The length of the data in a packet.
      */
-    public static final int PACKET_LENGTH = 45;
+    public static final int PACKETDATA_LENGTH = 45;
 
     /**
      * The length of the checksum datafield in the packetdata.
@@ -38,22 +38,15 @@ public class Protocol {
     public static final int SEQUENCE_START = 0;
 
     /**
-     * Size of the window in Go-Back-N. Determines how many outstanding
-     * unacknowledged packets there may be.
+     * Size of the window in Go-Back-N. Determines the maximum amount of
+     * outstanding unacknowledged packets there may be.
      */
     public static final int WINDOW_SIZE = 10;
 
     /**
-     * 
+     * The minimum time a sender will wait before it tries to resend a packet.
      */
-    // TODO write Javadoc
     public static final int TIMEOUT_IN_MILLIS = 5000;
-
-    /**
-     * 
-     */
-    // TODO write Javadoc
-    public static final int WAITTIME_IN_MILLIS = 10;
 
     /**
      * The default port which the server listens on.

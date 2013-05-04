@@ -18,13 +18,16 @@ import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 public class ACKReceiverThread extends RIPThread {
 
     private int expectedSequence;
+    private BlockingQueue<RIPPacket> inPacketBuffer;
     private BlockingQueue<RIPPacket> window;
     private DatagramSocket socket;
 
-    public ACKReceiverThread(final BlockingQueue<RIPPacket> window,
-            final DatagramSocket socket, final int startingSequence) {
+    public ACKReceiverThread(final BlockingQueue<RIPPacket> inPacketBuffer,
+            final BlockingQueue<RIPPacket> window, final DatagramSocket socket,
+            final int startingSequence) {
 
         expectedSequence = startingSequence;
+        this.inPacketBuffer = inPacketBuffer;
         this.window = window;
         this.socket = socket;
     }
@@ -33,37 +36,38 @@ public class ACKReceiverThread extends RIPThread {
     public final void run() {
         while (active && !Thread.interrupted()) {
             try {
-                byte[] byteData = new byte[Protocol.PACKET_LENGTH];
+                byte[] byteData = new byte[Protocol.PACKETDATA_LENGTH];
                 DatagramPacket packet = new DatagramPacket(byteData,
                         byteData.length);
 
                 socket.receive(packet);
 
-                String data = PacketUtils.getDataFromPacket(packet);
-                String[] items = data.split(Protocol.DATAFIELD_DELIMITER);
+                String payload = PacketUtils.getPayloadFromPacket(packet);
+                String[] datafields = PacketUtils.getDatafields(payload);
 
-                int datafields = Datafield.SIGNAL.ordinal() + 1;
-                if (items.length < datafields) {
-                    throw new InvalidPacketException(
-                            "Packet contains too few datafields");
-                }
-
-                String sequenceString = items[Datafield.SEQUENCE.ordinal()];
-                String signalString = items[Datafield.SIGNAL.ordinal()].trim();
-
+                String signalString = datafields[Datafield.SIGNAL.ordinal()];
                 Signal signal = SignalMap.getInstance().getByString(
                         signalString);
 
-                if (signal == null || signal != Signal.ACK) {
+                if (signal == null
+                        || !(signal == Signal.ACK || signal == Signal.SYNACK)) {
+
                     throw new InvalidPacketException(
                             "Invalid signal in packet: " + signal);
                 }
 
+                String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
                 int sequence = PacketUtils.convertFromHexString(sequenceString);
+
                 if (sequence >= expectedSequence) {
                     System.out.println("[ACKReceiver] Received expected: \""
-                            + data + "\"");
+                            + payload + "\"");
 
+                    if (signal == Signal.SYNACK) {
+                        RIPPacket synack = new RIPPacket(sequence, packet);
+                        inPacketBuffer.put(synack);
+                    }
+                    
                     Iterator<RIPPacket> it = window.iterator();
 
                     while (it.hasNext()) {
@@ -77,7 +81,7 @@ public class ACKReceiverThread extends RIPThread {
                     expectedSequence = sequence + 1;
                 } else {
                     System.out.println("[ACKReceiver] Received unexpected: \""
-                            + data + "\"");
+                            + payload + "\"");
                 }
 
             } catch (InvalidPacketException e) {
@@ -85,6 +89,9 @@ public class ACKReceiverThread extends RIPThread {
             } catch (IOException e) {
                 active = false;
                 exception = e;
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
     }

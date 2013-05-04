@@ -78,6 +78,13 @@ public class PacketUtilsTest {
     }
 
     @Test
+    public void validChecksumInSignalPacket() {
+        String packetData = "/127.0.0.1;55939;00000000;S;166              ";
+
+        assertTrue(PacketUtils.validChecksumInPacket(packetData));
+    }
+
+    @Test
     public void invalidChecksum() {
         String text = "qwertyuiop!";
         String checksum = PacketUtils.getChecksum(3, text);
@@ -140,7 +147,7 @@ public class PacketUtilsTest {
     }
 
     @Test
-    public void getFieldsNormalData() {
+    public void getFieldsNormalData() throws InvalidPacketException {
         String data = "/127.0.0.1;55555;00000001;P;lashdf;d9e        ";
         String[] datafields = PacketUtils.getDatafields(data);
 
@@ -153,7 +160,7 @@ public class PacketUtilsTest {
     }
 
     @Test
-    public void getFieldsDelimiterInData() {
+    public void getFieldsDelimiterInData() throws InvalidPacketException {
         String data = "/127.0.0.1;55555;00000001;P;las;hdf;d9e        ";
         String[] datafields = PacketUtils.getDatafields(data);
 
@@ -166,7 +173,7 @@ public class PacketUtilsTest {
     }
 
     @Test
-    public void getFieldsSpaceInData() {
+    public void getFieldsSpaceInData() throws InvalidPacketException {
         String data = "/127.0.0.1;55555;00000001;P;  ;la s;   ;d9e        ";
         String[] datafields = PacketUtils.getDatafields(data);
 
@@ -179,8 +186,8 @@ public class PacketUtilsTest {
     }
 
     @Test
-    public void getFieldsSignalPacket() {
-        String data = "/127.0.0.1;63164;00000000;S                  ";
+    public void getFieldsSignalPacket() throws InvalidPacketException {
+        String data = "/127.0.0.1;63164;00000000;S;166              ";
         String[] datafields = PacketUtils.getDatafields(data);
 
         assertEquals("/127.0.0.1", datafields[0]);

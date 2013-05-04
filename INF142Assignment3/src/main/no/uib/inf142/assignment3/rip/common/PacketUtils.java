@@ -86,7 +86,7 @@ public class PacketUtils {
         return validChecksum(toValidate, checksum);
     }
 
-    public static String getDataFromPacket(final DatagramPacket packet) {
+    public static String getPayloadFromPacket(final DatagramPacket packet) {
         return new String(packet.getData(), 0, packet.getLength());
     }
 
@@ -97,16 +97,25 @@ public class PacketUtils {
      * @param payload
      *            - the packet payload.
      * @return the array of datafields.
+     * @throws InvalidPacketException
      */
-    public static String[] getDatafields(final String payload) {
+    public static String[] getDatafields(final String payload)
+            throws InvalidPacketException {
         String delimiter = Protocol.DATAFIELD_DELIMITER;
         int dataFields = Datafield.values().length;
-        int signalPacketFields = Datafield.DATA.ordinal();
 
         String[] items = payload.split(delimiter, dataFields - 1);
+
+        if (items.length < dataFields - 1) {
+            throw new InvalidPacketException(
+                    "Packet contains too few datafields");
+        }
+
+        String signalString = items[Datafield.SIGNAL.ordinal()];
+        Signal signal = SignalMap.getInstance().getByString(signalString);
         int lastIndex = items.length - 1;
 
-        if (items.length > signalPacketFields) {
+        if (signal == Signal.REGULAR || signal == Signal.PARTIAL) {
             String dataAndChecksum = items[lastIndex];
             int lastDelimiter = dataAndChecksum.lastIndexOf(delimiter);
             String data = dataAndChecksum.substring(0, lastDelimiter);
@@ -125,11 +134,9 @@ public class PacketUtils {
             fields[i] = checksum.trim();
 
             return fields;
-        } else if (items.length == signalPacketFields) {
+        } else {
             items[lastIndex] = items[lastIndex].trim();
             return items;
-        } else {
-            return null;
         }
     }
 

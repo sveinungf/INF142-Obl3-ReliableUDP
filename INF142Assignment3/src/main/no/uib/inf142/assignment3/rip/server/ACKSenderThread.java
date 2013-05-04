@@ -48,15 +48,8 @@ public class ACKSenderThread extends RIPThread {
                 InetSocketAddress relay = new InetSocketAddress(relayAddress,
                         relayListeningPort);
 
-                String payload = PacketUtils.getDataFromPacket(packet);
+                String payload = PacketUtils.getPayloadFromPacket(packet);
                 String[] datafields = PacketUtils.getDatafields(payload);
-
-                int expectedDatafields = Datafield.values().length;
-
-                if (datafields.length < expectedDatafields) {
-                    throw new InvalidPacketException(
-                            "Packet contains too few datafields");
-                }
 
                 boolean checksumOk = PacketUtils.validChecksumInPacket(payload);
 
@@ -79,25 +72,37 @@ public class ACKSenderThread extends RIPThread {
                     PacketGenerator packetGen = new PacketGenerator(source,
                             relay);
 
-                    DatagramPacket ack = packetGen.makeACKPacket(sequence);
-                    socket.send(ack);
-
-                    System.out.println("[ACKSender] Sent: \""
-                            + PacketUtils.getDataFromPacket(ack) + "\"");
-
                     String signalString = datafields[Datafield.SIGNAL.ordinal()];
                     Signal signal = SignalMap.getInstance().getByString(
                             signalString);
 
-                    boolean dataComplete = signal == Signal.REGULAR;
-                    String data = datafields[Datafield.DATA.ordinal()];
-                    stringBuilder.append(data);
+                    if (signal == Signal.SYN) {
+                        DatagramPacket synack = packetGen.makeSignalPacket(
+                                sequence, Signal.SYNACK);
 
-                    if (dataComplete) {
-                        dataBuffer.put(stringBuilder.toString());
-                        stringBuilder = new StringBuilder();
+                        socket.send(synack);
+
+                        System.out.println("[ACKSender] Sent: \""
+                                + PacketUtils.getPayloadFromPacket(synack)
+                                + "\"");
+                    } else if (signal != Signal.ACK) {
+                        DatagramPacket ack = packetGen.makeSignalPacket(
+                                sequence, Signal.ACK);
+
+                        socket.send(ack);
+
+                        System.out.println("[ACKSender] Sent: \""
+                                + PacketUtils.getPayloadFromPacket(ack) + "\"");
+
+                        boolean dataComplete = signal == Signal.REGULAR;
+                        String data = datafields[Datafield.DATA.ordinal()];
+                        stringBuilder.append(data);
+
+                        if (dataComplete) {
+                            dataBuffer.put(stringBuilder.toString());
+                            stringBuilder = new StringBuilder();
+                        }
                     }
-
                 } else {
                     System.out.println("[ACKSender] "
                             + "Got unexpected sequence, ignored");

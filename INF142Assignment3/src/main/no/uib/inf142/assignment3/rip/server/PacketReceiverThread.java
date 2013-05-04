@@ -23,7 +23,7 @@ public class PacketReceiverThread extends RIPThread {
     @Override
     public final void run() {
         while (active) {
-            byte[] byteData = new byte[Protocol.PACKET_LENGTH];
+            byte[] byteData = new byte[Protocol.PACKETDATA_LENGTH];
             DatagramPacket packet = new DatagramPacket(byteData,
                     byteData.length);
 

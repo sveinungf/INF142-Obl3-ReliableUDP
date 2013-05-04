@@ -11,7 +11,7 @@ import no.uib.inf142.assignment3.rip.common.Protocol;
 public class ClientMain {
     // TODO connection setup
     // TODO connection tear-down
-    // TODO checksum on ACK packets
+    // TODO ACKSender: DON'T ignore sequence < expected, send an ACK
     public static void main(final String[] args) {
         InetAddress localhost;
 

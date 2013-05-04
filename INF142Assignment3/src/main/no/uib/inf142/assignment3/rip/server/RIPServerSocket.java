@@ -48,6 +48,10 @@ public class RIPServerSocket implements Closeable {
         packetReceiverThread.start();
     }
 
+    private void connectionSetup(final int relayPort) {
+
+    }
+
     /**
      * Returns a {@code String} object received on the connection.
      * 

@@ -22,9 +22,14 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
     public final RIPPacket makeSignalPacket(final Signal signal)
             throws TooShortPacketLengthException {
 
-        String seq = PacketUtils.convertToHexString(nextSequence);
-        String payload = buildDelimitedString(storedAddressHeader, seq,
-                signal.getString());
+        String seqString = PacketUtils.convertToHexString(nextSequence);
+        String staticData = buildDelimitedString(seqString, signal.getString());
+
+        String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
+                staticData);
+
+        String payload = buildDelimitedString(storedAddressHeader, staticData,
+                checksum);
 
         DatagramPacket packet = makePacket(payload);
         RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
@@ -44,7 +49,7 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
 
         if (dataLength <= 0) {
             throw new TooShortPacketLengthException("Packet length "
-                    + Protocol.PACKET_LENGTH + " too short");
+                    + Protocol.PACKETDATA_LENGTH + " too short");
         }
 
         while (!done) {

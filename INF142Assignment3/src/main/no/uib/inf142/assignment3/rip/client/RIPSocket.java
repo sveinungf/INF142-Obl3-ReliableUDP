@@ -43,40 +43,22 @@ public class RIPSocket implements Closeable {
         socket = new DatagramSocket();
         sequence = Protocol.SEQUENCE_START;
 
-        BlockingQueue<RIPPacket> packetBuffer = new LinkedBlockingQueue<RIPPacket>();
+        BlockingQueue<RIPPacket> inPacketBuffer = new LinkedBlockingQueue<RIPPacket>();
+        BlockingQueue<RIPPacket> outPacketBuffer = new LinkedBlockingQueue<RIPPacket>();
         BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-        connectionSetup(server, relay);
+        ackReceiverThread = new ACKReceiverThread(inPacketBuffer, window,
+                socket, sequence);
 
-        ackReceiverThread = new ACKReceiverThread(window, socket, sequence);
+        packetMakerThread = new PacketMakerThread(dataBuffer, inPacketBuffer,
+                outPacketBuffer, server, relay, sequence);
 
-        packetMakerThread = new PacketMakerThread(dataBuffer, packetBuffer,
-                server, relay, sequence);
-
-        packetSenderThread = new PacketSenderThread(socket, packetBuffer,
+        packetSenderThread = new PacketSenderThread(socket, outPacketBuffer,
                 window);
 
         ackReceiverThread.start();
         packetMakerThread.start();
         packetSenderThread.start();
-    }
-
-    private void connectionSetup(final InetSocketAddress server,
-            final InetSocketAddress relay) {
-
-        SequentialRIPPacketGenerator packetGen = new SequentialRIPPacketGenerator(
-                server, relay, sequence);
-
-        try {
-            RIPPacket syn = packetGen.makeSignalPacket(Signal.SYN);
-            socket.send(syn.getDatagramPacket());
-        } catch (TooShortPacketLengthException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
     /**

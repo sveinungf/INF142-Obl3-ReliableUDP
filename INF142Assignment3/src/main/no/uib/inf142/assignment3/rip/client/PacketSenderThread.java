@@ -5,11 +5,14 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.BlockingQueue;
 
+import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
 
 public class PacketSenderThread extends RIPThread {
+
+    private static final int WAITTIME_IN_MILLIS = 10;
 
     private BlockingQueue<RIPPacket> packetBuffer;
     private BlockingQueue<RIPPacket> window;
@@ -26,8 +29,38 @@ public class PacketSenderThread extends RIPThread {
         timer = new SimpleTimer(Protocol.TIMEOUT_IN_MILLIS);
     }
 
+    private void connectionSetup() {
+        try {
+            RIPPacket syn = packetBuffer.take();
+            window.put(syn);
+
+            DatagramPacket packet = syn.getDatagramPacket();
+            socket.send(packet);
+
+            // TODO timeout
+            String payload = PacketUtils.getPayloadFromPacket(packet);
+            System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+
+            RIPPacket ack = packetBuffer.take();
+
+            packet = ack.getDatagramPacket();
+            socket.send(packet);
+
+            payload = PacketUtils.getPayloadFromPacket(packet);
+            System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public final void run() {
+        connectionSetup();
+
         int maxWindowSize = Protocol.WINDOW_SIZE;
         timer.restart();
 
@@ -58,11 +91,11 @@ public class PacketSenderThread extends RIPThread {
                     DatagramPacket packet = ripPacket.getDatagramPacket();
                     socket.send(packet);
 
-                    String data = new String(packet.getData(), 0,
-                            packet.getLength());
-                    System.out.println("[PacketSender] Sent: \"" + data + "\"");
+                    String payload = PacketUtils.getPayloadFromPacket(packet);
+                    System.out.println("[PacketSender] Sent: \"" + payload
+                            + "\"");
                 } else {
-                    Thread.sleep(Protocol.WAITTIME_IN_MILLIS);
+                    Thread.sleep(WAITTIME_IN_MILLIS);
                 }
             } catch (IOException | InterruptedException e) {
                 active = false;

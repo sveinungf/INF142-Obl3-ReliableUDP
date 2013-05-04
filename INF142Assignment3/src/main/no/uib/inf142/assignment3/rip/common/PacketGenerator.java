@@ -20,12 +20,19 @@ public class PacketGenerator {
         this.relay = relay;
     }
 
-    public final DatagramPacket makeACKPacket(final int sequence)
-            throws TooShortPacketLengthException {
+    public final DatagramPacket makeSignalPacket(final int sequence,
+            final Signal signal) throws TooShortPacketLengthException {
 
-        String seq = PacketUtils.convertToHexString(sequence);
-        String signal = Signal.ACK.getString();
-        String payload = buildDelimitedString(storedAddressHeader, seq, signal);
+        String seqString = PacketUtils.convertToHexString(sequence);
+        String signalString = signal.getString();
+
+        String staticData = buildDelimitedString(seqString, signalString);
+
+        String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
+                staticData);
+
+        String payload = buildDelimitedString(storedAddressHeader, staticData,
+                checksum);
 
         return makePacket(payload);
     }
@@ -33,7 +40,7 @@ public class PacketGenerator {
     protected final DatagramPacket makePacket(final String data)
             throws TooShortPacketLengthException {
 
-        int packetLength = Protocol.PACKET_LENGTH;
+        int packetLength = Protocol.PACKETDATA_LENGTH;
 
         // Need trailing spaces here since the Relay doesn't clean up
         int trailingSpaces = packetLength - data.length();
