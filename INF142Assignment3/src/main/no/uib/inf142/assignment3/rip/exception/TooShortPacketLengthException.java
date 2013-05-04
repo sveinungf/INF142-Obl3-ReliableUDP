@@ -8,7 +8,7 @@ public class TooShortPacketLengthException extends Exception {
 		super();
 	}
 
-	public TooShortPacketLengthException(String msg) {
+	public TooShortPacketLengthException(final String msg) {
 		super(msg);
 	}
 }

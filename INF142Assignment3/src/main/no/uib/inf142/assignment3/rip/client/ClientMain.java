@@ -9,37 +9,38 @@ import java.util.Scanner;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 
 public class ClientMain {
-	// TODO connection setup
-	// TODO connection tear-down
-	// TODO checksum on ACK packets
-	public static void main(String[] args) {
-		InetAddress localhost = null;
+    // TODO connection setup
+    // TODO connection tear-down
+    // TODO checksum on ACK packets
+    public static void main(final String[] args) {
+        InetAddress localhost;
 
-		try {
-			localhost = InetAddress.getByName("127.0.0.1");
-		} catch (UnknownHostException e) {
-		}
+        try {
+            localhost = InetAddress.getByName("127.0.0.1");
+        } catch (UnknownHostException e) {
+            localhost = null;
+        }
 
-		InetSocketAddress server = new InetSocketAddress(localhost,
-				Protocol.SERVER_LISTENING_PORT);
-		InetSocketAddress relay = new InetSocketAddress(localhost,
-				Protocol.RELAY_LISTENING_PORT);
+        InetSocketAddress server = new InetSocketAddress(localhost,
+                Protocol.SERVER_LISTENING_PORT);
+        InetSocketAddress relay = new InetSocketAddress(localhost,
+                Protocol.RELAY_LISTENING_PORT);
 
-		try {
-			RIPSocket ripsocket = new RIPSocket(server, relay);
-			Scanner kbd = new Scanner(System.in);
+        try {
+            RIPSocket ripsocket = new RIPSocket(server, relay);
+            Scanner kbd = new Scanner(System.in);
 
-			String input = "";
+            String input = "";
 
-			while (!input.equals("exit")) {
-				input = kbd.nextLine();
+            while (!input.equals("exit")) {
+                input = kbd.nextLine();
 
-				ripsocket.send(input);
-			}
-			kbd.close();
-			ripsocket.close();
-		} catch (SocketException e) {
-			e.printStackTrace();
-		}
-	}
+                ripsocket.send(input);
+            }
+            kbd.close();
+            ripsocket.close();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+    }
 }

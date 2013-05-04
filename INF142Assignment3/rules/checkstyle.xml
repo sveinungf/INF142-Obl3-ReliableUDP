@@ -68,7 +68,10 @@
     <module name="AvoidInlineConditionals"/>
     <module name="EmptyStatement"/>
     <module name="EqualsHashCode"/>
-    <module name="HiddenField"/>
+    <module name="HiddenField">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="IllegalInstantiation"/>
     <module name="InnerAssignment"/>
     <module name="MagicNumber"/>
@@ -80,9 +83,11 @@
     <module name="SimplifyBooleanReturn"/>
     <module name="DesignForExtension"/>
     <module name="FinalClass"/>
-    <module name="HideUtilityClassConstructor"/>
+    <module name="HideUtilityClassConstructor">
+      <property name="severity" value="ignore"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    </module>
     <module name="InterfaceIsType"/>
-    <module name="VisibilityModifier"/>
     <module name="ArrayTypeStyle"/>
     <module name="FinalParameters"/>
     <module name="TodoComment">
@@ -90,6 +95,9 @@
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="UpperEll"/>
+    <module name="VisibilityModifier">
+      <property name="protectedAllowed" value="true"/>
+    </module>
   </module>
   <module name="JavadocPackage">
     <property name="severity" value="ignore"/>

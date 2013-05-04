@@ -3,9 +3,9 @@ package no.uib.inf142.assignment3.rip.common;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SignalMap {
+public final class SignalMap {
 
-	private static final SignalMap instance = new SignalMap();
+	private static final SignalMap INSTANCE = new SignalMap();
 
 	private final Map<String, Signal> map;
 	private final int maxSignalLength;
@@ -37,6 +37,6 @@ public class SignalMap {
 	}
 
 	public static SignalMap getInstance() {
-		return instance;
+		return INSTANCE;
 	}
 }

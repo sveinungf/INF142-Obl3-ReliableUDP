@@ -31,8 +31,8 @@ public class RIPSocket implements Closeable {
      * @throws SocketException
      *             if the socket could not be opened.
      */
-    public RIPSocket(InetSocketAddress server, InetSocketAddress relay)
-            throws SocketException {
+    public RIPSocket(final InetSocketAddress server,
+            final InetSocketAddress relay) throws SocketException {
 
         int startingSequence = Protocol.SEQUENCE_START;
         dataBuffer = new LinkedBlockingQueue<String>();
@@ -54,7 +54,7 @@ public class RIPSocket implements Closeable {
         packetMakerThread.start();
         packetSenderThread.start();
 
-        // connectionSetup();
+        connectionSetup();
     }
 
     private void connectionSetup() {
@@ -70,7 +70,7 @@ public class RIPSocket implements Closeable {
      *             if the socket is closed, or any of the threads this
      *             {@code RIPSocket} started have died.
      */
-    public void send(String string) throws SocketException {
+    public final void send(final String string) throws SocketException {
         if (socket.isClosed()) {
             throw new SocketException("Lost connection");
         }
@@ -93,6 +93,7 @@ public class RIPSocket implements Closeable {
         try {
             dataBuffer.put(string);
         } catch (InterruptedException e) {
+            throw new SocketException("Interrupted while buffering data");
         }
     }
 

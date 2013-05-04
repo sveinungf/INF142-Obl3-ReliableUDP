@@ -18,98 +18,98 @@ import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class ACKSenderThread extends RIPThread {
 
-	private int expectedSequence;
-	private int relayListeningPort;
-	private BlockingQueue<DatagramPacket> packetBuffer;
-	private BlockingQueue<String> dataBuffer;
-	private DatagramSocket socket;
-	private StringBuilder stringBuilder;
+    private int expectedSequence;
+    private int relayListeningPort;
+    private BlockingQueue<DatagramPacket> packetBuffer;
+    private BlockingQueue<String> dataBuffer;
+    private DatagramSocket socket;
+    private StringBuilder stringBuilder;
 
-	public ACKSenderThread(DatagramSocket socket,
-			BlockingQueue<DatagramPacket> packetBuffer,
-			BlockingQueue<String> dataBuffer, int relayListeningPort,
-			int startingSequence) {
+    public ACKSenderThread(final DatagramSocket socket,
+            final BlockingQueue<DatagramPacket> packetBuffer,
+            final BlockingQueue<String> dataBuffer,
+            final int relayListeningPort, final int startingSequence) {
 
-		expectedSequence = startingSequence;
-		this.relayListeningPort = relayListeningPort;
-		this.packetBuffer = packetBuffer;
-		this.dataBuffer = dataBuffer;
-		this.socket = socket;
-		stringBuilder = new StringBuilder();
-	}
+        expectedSequence = startingSequence;
+        this.relayListeningPort = relayListeningPort;
+        this.packetBuffer = packetBuffer;
+        this.dataBuffer = dataBuffer;
+        this.socket = socket;
+        stringBuilder = new StringBuilder();
+    }
 
-	@Override
-	public void run() {
-		while (active) {
-			try {
-				DatagramPacket packet = packetBuffer.take();
+    @Override
+    public final void run() {
+        while (active) {
+            try {
+                DatagramPacket packet = packetBuffer.take();
 
-				InetAddress relayAddress = packet.getAddress();
-				InetSocketAddress relay = new InetSocketAddress(relayAddress,
-						relayListeningPort);
+                InetAddress relayAddress = packet.getAddress();
+                InetSocketAddress relay = new InetSocketAddress(relayAddress,
+                        relayListeningPort);
 
-				String payload = PacketUtils.getDataFromPacket(packet);
-				String[] datafields = PacketUtils.getDatafields(payload);
+                String payload = PacketUtils.getDataFromPacket(packet);
+                String[] datafields = PacketUtils.getDatafields(payload);
 
-				int expectedDatafields = Datafield.values().length;
+                int expectedDatafields = Datafield.values().length;
 
-				if (datafields.length < expectedDatafields) {
-					throw new InvalidPacketException(
-							"Packet contains too few datafields");
-				}
+                if (datafields.length < expectedDatafields) {
+                    throw new InvalidPacketException(
+                            "Packet contains too few datafields");
+                }
 
-				boolean checksumOk = PacketUtils.validChecksumInPacket(payload);
+                boolean checksumOk = PacketUtils.validChecksumInPacket(payload);
 
-				if (!checksumOk) {
-					throw new InvalidPacketException("Wrong checksum in packet");
-				}
+                if (!checksumOk) {
+                    throw new InvalidPacketException("Wrong checksum in packet");
+                }
 
-				String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
-				int sequence = PacketUtils.convertFromHexString(sequenceString);
+                String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
+                int sequence = PacketUtils.convertFromHexString(sequenceString);
 
-				String ipString = datafields[Datafield.IP.ordinal()];
-				String portString = datafields[Datafield.PORT.ordinal()];
+                String ipString = datafields[Datafield.IP.ordinal()];
+                String portString = datafields[Datafield.PORT.ordinal()];
 
-				InetSocketAddress source = PacketUtils.parseSocketAddress(
-						ipString, portString);
+                InetSocketAddress source = PacketUtils.parseSocketAddress(
+                        ipString, portString);
 
-				if (sequence == expectedSequence) {
-					++expectedSequence;
+                if (sequence == expectedSequence) {
+                    ++expectedSequence;
 
-					PacketGenerator packetGen = new PacketGenerator(source,
-							relay);
+                    PacketGenerator packetGen = new PacketGenerator(source,
+                            relay);
 
-					DatagramPacket ack = packetGen.makeACKPacket(sequence);
-					socket.send(ack);
+                    DatagramPacket ack = packetGen.makeACKPacket(sequence);
+                    socket.send(ack);
 
-					System.out.println("[ACKSender] Sent: \""
-							+ PacketUtils.getDataFromPacket(ack) + "\"");
+                    System.out.println("[ACKSender] Sent: \""
+                            + PacketUtils.getDataFromPacket(ack) + "\"");
 
-					String signalString = datafields[Datafield.SIGNAL.ordinal()];
-					Signal signal = SignalMap.getInstance().getByString(
-							signalString);
+                    String signalString = datafields[Datafield.SIGNAL.ordinal()];
+                    Signal signal = SignalMap.getInstance().getByString(
+                            signalString);
 
-					boolean dataComplete = signal == Signal.REGULAR;
-					String data = datafields[Datafield.DATA.ordinal()];
-					stringBuilder.append(data);
+                    boolean dataComplete = signal == Signal.REGULAR;
+                    String data = datafields[Datafield.DATA.ordinal()];
+                    stringBuilder.append(data);
 
-					if (dataComplete) {
-						dataBuffer.put(stringBuilder.toString());
-						stringBuilder = new StringBuilder();
-					}
+                    if (dataComplete) {
+                        dataBuffer.put(stringBuilder.toString());
+                        stringBuilder = new StringBuilder();
+                    }
 
-				} else {
-					System.out.println("[ACKSender] "
-							+ "Got unexpected sequence, ignored");
-				}
-			} catch (InvalidPacketException e) {
-				System.out.println("[ACKSender] " + e.getMessage());
-			} catch (InterruptedException | IOException
-					| TooShortPacketLengthException e) {
+                } else {
+                    System.out.println("[ACKSender] "
+                            + "Got unexpected sequence, ignored");
+                }
+            } catch (InvalidPacketException e) {
+                System.out.println("[ACKSender] " + e.getMessage());
+            } catch (InterruptedException | IOException
+                    | TooShortPacketLengthException e) {
 
-				active = false;
-				System.out.println("[ACKSender] Closing, " + e.getMessage());
-			}
-		}
-	}
+                active = false;
+                System.out.println("[ACKSender] Closing, " + e.getMessage());
+            }
+        }
+    }
 }

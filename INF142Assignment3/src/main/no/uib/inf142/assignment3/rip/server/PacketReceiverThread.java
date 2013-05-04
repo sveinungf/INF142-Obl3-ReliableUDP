@@ -10,35 +10,35 @@ import no.uib.inf142.assignment3.rip.common.RIPThread;
 
 public class PacketReceiverThread extends RIPThread {
 
-	private BlockingQueue<DatagramPacket> packetBuffer;
-	private DatagramSocket socket;
+    private BlockingQueue<DatagramPacket> packetBuffer;
+    private DatagramSocket socket;
 
-	public PacketReceiverThread(DatagramSocket socket,
-			BlockingQueue<DatagramPacket> packetBuffer) {
+    public PacketReceiverThread(final DatagramSocket socket,
+            final BlockingQueue<DatagramPacket> packetBuffer) {
 
-		this.packetBuffer = packetBuffer;
-		this.socket = socket;
-	}
+        this.packetBuffer = packetBuffer;
+        this.socket = socket;
+    }
 
-	@Override
-	public void run() {
-		while (active) {
-			byte[] byteData = new byte[Protocol.MAX_PACKET_LENGTH];
-			DatagramPacket packet = new DatagramPacket(byteData,
-					byteData.length);
+    @Override
+    public final void run() {
+        while (active) {
+            byte[] byteData = new byte[Protocol.PACKET_LENGTH];
+            DatagramPacket packet = new DatagramPacket(byteData,
+                    byteData.length);
 
-			try {
-				socket.receive(packet);
-				String data = new String(packet.getData(), 0,
-						packet.getLength());
-				System.out.println("[PacketReceiver] Received: \"" + data
-						+ "\"");
+            try {
+                socket.receive(packet);
+                String data = new String(packet.getData(), 0,
+                        packet.getLength(), Protocol.CHARSET);
+                System.out.println("[PacketReceiver] Received: \"" + data
+                        + "\"");
 
-				packetBuffer.put(packet);
-			} catch (IOException | InterruptedException e) {
-				active = false;
-				exception = e;
-			}
-		}
-	}
+                packetBuffer.put(packet);
+            } catch (IOException | InterruptedException e) {
+                active = false;
+                exception = e;
+            }
+        }
+    }
 }

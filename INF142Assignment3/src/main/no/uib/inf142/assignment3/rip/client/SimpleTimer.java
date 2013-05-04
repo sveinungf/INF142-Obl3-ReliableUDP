@@ -2,31 +2,31 @@ package no.uib.inf142.assignment3.rip.client;
 
 import java.util.Calendar;
 
-public class SimpleTimer {
+public final class SimpleTimer {
 
-	private long delayInMillis;
-	private long expirationTimeInMillis;
+    private long delayInMillis;
+    private long expirationTimeInMillis;
 
-	public SimpleTimer(long delayInMillis) {
-		this.delayInMillis = delayInMillis;
-		restart();
-	}
+    public SimpleTimer(final long delayInMillis) {
+        this.delayInMillis = delayInMillis;
+        restart();
+    }
 
-	public long getDelayInMillis() {
-		return delayInMillis;
-	}
+    public long getDelayInMillis() {
+        return delayInMillis;
+    }
 
-	public void setDelayInMillis(long delayInMillis) {
-		this.delayInMillis = delayInMillis;
-	}
+    public void setDelayInMillis(final long delayInMillis) {
+        this.delayInMillis = delayInMillis;
+    }
 
-	public boolean timedOut() {
-		Calendar now = Calendar.getInstance();
-		return now.getTimeInMillis() > expirationTimeInMillis;
-	}
+    public boolean timedOut() {
+        Calendar now = Calendar.getInstance();
+        return now.getTimeInMillis() > expirationTimeInMillis;
+    }
 
-	public void restart() {
-		Calendar now = Calendar.getInstance();
-		expirationTimeInMillis = now.getTimeInMillis() + delayInMillis;
-	}
+    public void restart() {
+        Calendar now = Calendar.getInstance();
+        expirationTimeInMillis = now.getTimeInMillis() + delayInMillis;
+    }
 }

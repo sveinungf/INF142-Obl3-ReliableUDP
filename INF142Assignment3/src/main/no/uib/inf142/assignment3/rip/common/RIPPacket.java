@@ -4,19 +4,19 @@ import java.net.DatagramPacket;
 
 public class RIPPacket {
 
-	private final int sequence;
-	private final DatagramPacket datagramPacket;
+    private final int sequence;
+    private final DatagramPacket datagramPacket;
 
-	public RIPPacket(int sequence, DatagramPacket datagramPacket) {
-		this.sequence = sequence;
-		this.datagramPacket = datagramPacket;
-	}
+    public RIPPacket(final int sequence, final DatagramPacket datagramPacket) {
+        this.sequence = sequence;
+        this.datagramPacket = datagramPacket;
+    }
 
-	public int getSequence() {
-		return sequence;
-	}
+    public final int getSequence() {
+        return sequence;
+    }
 
-	public DatagramPacket getDatagramPacket() {
-		return datagramPacket;
-	}
+    public final DatagramPacket getDatagramPacket() {
+        return datagramPacket;
+    }
 }

@@ -11,37 +11,37 @@ import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class PacketMakerThread extends RIPThread {
 
-	private BlockingQueue<String> dataBuffer;
-	private BlockingQueue<RIPPacket> packetBuffer;
-	private SequentialRIPPacketGenerator packetGen;
+    private BlockingQueue<String> dataBuffer;
+    private BlockingQueue<RIPPacket> packetBuffer;
+    private SequentialRIPPacketGenerator packetGen;
 
-	public PacketMakerThread(BlockingQueue<String> dataBuffer,
-			BlockingQueue<RIPPacket> packetBuffer,
-			InetSocketAddress finalDestination, InetSocketAddress relay,
-			int startingSequence) {
+    public PacketMakerThread(final BlockingQueue<String> dataBuffer,
+            final BlockingQueue<RIPPacket> packetBuffer,
+            final InetSocketAddress finalDestination,
+            final InetSocketAddress relay, final int startingSequence) {
 
-		super();
-		this.dataBuffer = dataBuffer;
-		this.packetBuffer = packetBuffer;
+        super();
+        this.dataBuffer = dataBuffer;
+        this.packetBuffer = packetBuffer;
 
-		packetGen = new SequentialRIPPacketGenerator(finalDestination, relay,
-				startingSequence);
-	}
+        packetGen = new SequentialRIPPacketGenerator(finalDestination, relay,
+                startingSequence);
+    }
 
-	@Override
-	public void run() {
-		while (active && !Thread.interrupted()) {
-			try {
-				String data = dataBuffer.take();
-				List<RIPPacket> packetList = packetGen.makePackets(data);
+    @Override
+    public final void run() {
+        while (active && !Thread.interrupted()) {
+            try {
+                String data = dataBuffer.take();
+                List<RIPPacket> packetList = packetGen.makePackets(data);
 
-				for (RIPPacket packet : packetList) {
-					packetBuffer.put(packet);
-				}
-			} catch (InterruptedException | TooShortPacketLengthException e) {
-				active = false;
-				exception = e;
-			}
-		}
-	}
+                for (RIPPacket packet : packetList) {
+                    packetBuffer.put(packet);
+                }
+            } catch (InterruptedException | TooShortPacketLengthException e) {
+                active = false;
+                exception = e;
+            }
+        }
+    }
 }
