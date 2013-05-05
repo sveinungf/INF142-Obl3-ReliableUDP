@@ -40,7 +40,7 @@ public class ACKSenderThread extends RIPThread {
 
     @Override
     public final void run() {
-        while (active) {
+        while (active && !Thread.interrupted()) {
             try {
                 DatagramPacket packet = packetBuffer.take();
 
@@ -54,7 +54,8 @@ public class ACKSenderThread extends RIPThread {
                 boolean checksumOk = PacketUtils.validChecksumInPacket(payload);
 
                 if (!checksumOk) {
-                    throw new InvalidPacketException("Wrong checksum in packet");
+                    throw new InvalidPacketException(
+                            "Wrong checksum in packet, ignored");
                 }
 
                 String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
@@ -66,54 +67,52 @@ public class ACKSenderThread extends RIPThread {
                 InetSocketAddress source = PacketUtils.parseSocketAddress(
                         ipString, portString);
 
-                if (sequence == expectedSequence) {
-                    ++expectedSequence;
+                if (sequence != expectedSequence) {
+                    throw new InvalidPacketException(
+                            "Got unexpected sequence, ignored");
+                }
 
-                    PacketGenerator packetGen = new PacketGenerator(source,
-                            relay);
+                ++expectedSequence;
 
-                    String signalString = datafields[Datafield.SIGNAL.ordinal()];
-                    Signal signal = SignalMap.getInstance().getByString(
-                            signalString);
+                PacketGenerator packetGen = new PacketGenerator(source, relay);
 
-                    if (signal == Signal.SYN) {
-                        DatagramPacket synack = packetGen.makeSignalPacket(
-                                sequence, Signal.SYNACK);
+                String signalString = datafields[Datafield.SIGNAL.ordinal()];
+                Signal signal = SignalMap.getInstance().getByString(
+                        signalString);
 
-                        socket.send(synack);
+                if (signal == Signal.SYN) {
+                    DatagramPacket synack = packetGen.makeSignalPacket(
+                            sequence, Signal.SYNACK);
 
-                        System.out.println("[ACKSender] Sent: \""
-                                + PacketUtils.getPayloadFromPacket(synack)
-                                + "\"");
-                    } else if (signal != Signal.ACK) {
-                        DatagramPacket ack = packetGen.makeSignalPacket(
-                                sequence, Signal.ACK);
+                    socket.send(synack);
 
-                        socket.send(ack);
+                    payload = PacketUtils.getPayloadFromPacket(synack);
+                    System.out.println("[ACKSender] Sent: \"" + payload + "\"");
+                } else if (signal == Signal.REGULAR || signal == Signal.PARTIAL) {
+                    DatagramPacket ack = packetGen.makeSignalPacket(sequence,
+                            Signal.ACK);
 
-                        System.out.println("[ACKSender] Sent: \""
-                                + PacketUtils.getPayloadFromPacket(ack) + "\"");
+                    socket.send(ack);
 
-                        boolean dataComplete = signal == Signal.REGULAR;
-                        String data = datafields[Datafield.DATA.ordinal()];
-                        stringBuilder.append(data);
+                    payload = PacketUtils.getPayloadFromPacket(ack);
+                    System.out.println("[ACKSender] Sent: \"" + payload + "\"");
 
-                        if (dataComplete) {
-                            dataBuffer.put(stringBuilder.toString());
-                            stringBuilder = new StringBuilder();
-                        }
+                    boolean dataComplete = signal == Signal.REGULAR;
+                    String data = datafields[Datafield.DATA.ordinal()];
+                    stringBuilder.append(data);
+
+                    if (dataComplete) {
+                        dataBuffer.put(stringBuilder.toString());
+                        stringBuilder = new StringBuilder();
                     }
-                } else {
-                    System.out.println("[ACKSender] "
-                            + "Got unexpected sequence, ignored");
                 }
             } catch (InvalidPacketException e) {
                 System.out.println("[ACKSender] " + e.getMessage());
-            } catch (InterruptedException | IOException
+            } catch (IOException | InterruptedException
                     | TooShortPacketLengthException e) {
 
                 active = false;
-                System.out.println("[ACKSender] Closing, " + e.getMessage());
+                exception = e;
             }
         }
     }

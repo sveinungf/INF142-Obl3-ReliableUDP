@@ -12,7 +12,6 @@ public class ClientMain {
     // TODO connection setup
     // TODO connection tear-down
     // TODO ACKSender: DON'T ignore sequence < expected, send an ACK
-    // TODO attempts when no connection
     public static void main(final String[] args) {
         InetAddress localhost;
 

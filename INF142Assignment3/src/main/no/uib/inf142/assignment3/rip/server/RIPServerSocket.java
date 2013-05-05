@@ -4,6 +4,8 @@ import java.io.Closeable;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -14,8 +16,7 @@ public class RIPServerSocket implements Closeable {
 
     private BlockingQueue<String> dataBuffer;
     private DatagramSocket socket;
-    private RIPThread ackSenderThread;
-    private RIPThread packetReceiverThread;
+    private List<RIPThread> threads;
 
     /**
      * Constructs a {@code RIPServerSocket} object, and which similarly to a
@@ -36,20 +37,18 @@ public class RIPServerSocket implements Closeable {
         int startingSequence = Protocol.SEQUENCE_START;
         dataBuffer = new LinkedBlockingQueue<String>();
         socket = new DatagramSocket(port);
+        threads = new ArrayList<RIPThread>();
 
         BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
 
-        packetReceiverThread = new PacketReceiverThread(socket, packetBuffer);
+        threads.add(new PacketReceiverThread(socket, packetBuffer));
 
-        ackSenderThread = new ACKSenderThread(socket, packetBuffer, dataBuffer,
-                relayPort, startingSequence);
+        threads.add(new ACKSenderThread(socket, packetBuffer, dataBuffer,
+                relayPort, startingSequence));
 
-        ackSenderThread.start();
-        packetReceiverThread.start();
-    }
-
-    private void connectionSetup(final int relayPort) {
-
+        for (RIPThread thread : threads) {
+            thread.start();
+        }
     }
 
     /**
@@ -65,14 +64,11 @@ public class RIPServerSocket implements Closeable {
             throw new SocketException("Lost connection");
         }
 
-        if (!ackSenderThread.isAlive()) {
-            String error = ackSenderThread.getException().getMessage();
-            throw new SocketException(error);
-        }
-
-        if (!packetReceiverThread.isAlive()) {
-            String error = packetReceiverThread.getException().getMessage();
-            throw new SocketException(error);
+        for (RIPThread thread : threads) {
+            if (!thread.isAlive()) {
+                String error = thread.getException().getMessage();
+                throw new SocketException(error);
+            }
         }
 
         String data = null;
@@ -93,8 +89,9 @@ public class RIPServerSocket implements Closeable {
      */
     @Override
     public final void close() {
-        ackSenderThread.interrupt();
-        packetReceiverThread.interrupt();
+        for (RIPThread thread : threads) {
+            thread.interrupt();
+        }
 
         socket.close();
     }

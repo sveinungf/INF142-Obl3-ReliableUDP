@@ -85,11 +85,11 @@ public class PacketSenderThread extends RIPThread {
 
         timer.restart();
 
-        while (active && !Thread.interrupted()) {
-            boolean timeout = timer.timedOut();
-            boolean windowFull = window.size() > maxWindowSize;
+        try {
+            while (active && !Thread.interrupted()) {
+                boolean timeout = timer.timedOut();
+                boolean windowFull = window.size() > maxWindowSize;
 
-            try {
                 if (timeout && !window.isEmpty()) {
                     ++attempts;
 
@@ -130,10 +130,10 @@ public class PacketSenderThread extends RIPThread {
                 } else {
                     Thread.sleep(WAITTIME_IN_MILLIS);
                 }
-            } catch (IOException | InterruptedException e) {
-                active = false;
-                exception = e;
             }
+        } catch (IOException | InterruptedException e) {
+            active = false;
+            exception = e;
         }
     }
 }
