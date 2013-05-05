@@ -44,13 +44,20 @@ public class Protocol {
     public static final int WINDOW_SIZE = 10;
 
     /**
-     * The minimum time a sender will wait before it tries to resend a packet.
+     * The minimum time in milliseconds a sender will wait before it tries to
+     * resend a packet.
      */
-    public static final long TIMEOUT_IN_MILLIS = 5000;
+    public static final long SENDER_TIMEOUT = 1000;
 
     /**
-     * The minimum time the client will wait after sending the last ACK in
-     * connection tear-down, before closing.
+     * The minimum time in milliseconds the server will wait after receiving a
+     * packet, before it closes the connection.
+     */
+    public static final long SERVER_TIMEOUT = 30000;
+
+    /**
+     * The minimum time in milliseconds the client will wait after sending the
+     * last ACK in connection tear-down, before closing.
      */
     public static final long FIN_TIME_WAIT = 5000;
 

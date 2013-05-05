@@ -42,10 +42,12 @@ public class RIPServerSocket implements Closeable {
 
         BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
 
-        threads.add(new ACKSenderThread(socket, packetBuffer, dataBuffer,
-                relayPort, startingSequence));
+        RIPThread ackSenderThread = new ACKSenderThread(socket, packetBuffer,
+                dataBuffer, relayPort, startingSequence);
+        threads.add(ackSenderThread);
 
-        threads.add(new PacketReceiverThread(socket, packetBuffer));
+        threads.add(new PacketReceiverThread(socket, packetBuffer,
+                ackSenderThread));
 
         for (RIPThread thread : threads) {
             thread.start();
@@ -78,7 +80,7 @@ public class RIPServerSocket implements Closeable {
             }
 
             try {
-                data = dataBuffer.poll(Protocol.TIMEOUT_IN_MILLIS,
+                data = dataBuffer.poll(Protocol.SENDER_TIMEOUT,
                         TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 throw new SocketException(

@@ -32,7 +32,7 @@ public class PacketSenderThread extends RIPThread {
         this.outPacketBuffer = outPacketBuffer;
         this.socket = socket;
         this.packetMakerThread = packetMakerThread;
-        timer = new SimpleTimer(Protocol.TIMEOUT_IN_MILLIS);
+        timer = new SimpleTimer(Protocol.SENDER_TIMEOUT);
     }
 
     private void connectionSetup() {
@@ -52,7 +52,7 @@ public class PacketSenderThread extends RIPThread {
                 String payload = PacketUtils.getPayloadFromPacket(packet);
                 System.out.println("[PacketSender] Sent: \"" + payload + "\"");
 
-                ack = outPacketBuffer.poll(Protocol.TIMEOUT_IN_MILLIS,
+                ack = outPacketBuffer.poll(Protocol.SENDER_TIMEOUT,
                         TimeUnit.MILLISECONDS);
 
                 ++attempts;
