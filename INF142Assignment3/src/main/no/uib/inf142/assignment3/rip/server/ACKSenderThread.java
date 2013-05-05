@@ -49,17 +49,12 @@ public class ACKSenderThread extends RIPThread {
                         relayListeningPort);
 
                 String payload = PacketUtils.getPayloadFromPacket(packet);
+                PacketUtils.verifyChecksumInPayload(payload);
+                
                 String[] datafields = PacketUtils.getDatafields(payload);
 
-                boolean checksumOk = PacketUtils.validChecksumInPacket(payload);
-
-                if (!checksumOk) {
-                    throw new InvalidPacketException(
-                            "Wrong checksum in packet, ignored");
-                }
-
                 String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
-                int sequence = PacketUtils.convertFromHexString(sequenceString);
+                int sequence = PacketUtils.convertFromHexStringToInt(sequenceString);
 
                 String ipString = datafields[Datafield.IP.ordinal()];
                 String portString = datafields[Datafield.PORT.ordinal()];

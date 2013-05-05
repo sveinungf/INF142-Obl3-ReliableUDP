@@ -23,7 +23,7 @@ public class PacketGenerator {
     public final DatagramPacket makeSignalPacket(final int sequence,
             final Signal signal) throws TooShortPacketLengthException {
 
-        String seqString = PacketUtils.convertToHexString(sequence);
+        String seqString = PacketUtils.convertIntToHexString(sequence);
         String signalString = signal.getString();
 
         String staticData = buildDelimitedString(seqString, signalString);

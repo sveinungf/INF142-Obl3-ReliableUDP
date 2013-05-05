@@ -61,9 +61,33 @@ public class PacketMakerThread extends RIPThread {
                     outPacketBuffer.put(packet);
                 }
             } catch (InterruptedException | TooShortPacketLengthException e) {
-                active = false;
                 exception = e;
+                interrupt();
             }
+        }
+
+        if (active) {
+            connectionTeardown();
+        }
+        
+        System.out.println("[PacketMaker] Done");
+    }
+
+    private void connectionTeardown() {
+        try {
+            RIPPacket fin = packetGen.makeSignalPacket(Signal.FIN);
+            outPacketBuffer.put(fin);
+
+            // ACK
+            inPacketBuffer.take();
+
+            // FIN
+            inPacketBuffer.take();
+
+            RIPPacket ack = packetGen.makeSignalPacket(Signal.ACK);
+            outPacketBuffer.put(ack);
+        } catch (InterruptedException | TooShortPacketLengthException e) {
+            exception = e;
         }
     }
 }

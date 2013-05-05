@@ -22,7 +22,7 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
     public final RIPPacket makeSignalPacket(final Signal signal)
             throws TooShortPacketLengthException {
 
-        String seqString = PacketUtils.convertToHexString(nextSequence);
+        String seqString = PacketUtils.convertIntToHexString(nextSequence);
         String staticData = buildDelimitedString(seqString, signal.getString());
 
         String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
@@ -32,7 +32,7 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
                 checksum);
 
         DatagramPacket packet = makePacket(payload);
-        RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
+        RIPPacket ripPacket = new RIPPacket(nextSequence, packet, signal);
         ++nextSequence;
 
         return ripPacket;
@@ -54,22 +54,22 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
 
         while (!done) {
             String packetData;
-            String signal;
+            Signal signal;
 
             if (dataLeft.length() > dataLength) {
                 packetData = dataLeft.substring(0, dataLength);
                 dataLeft = dataLeft.substring(dataLength);
-                signal = Signal.PARTIAL.getString();
+                signal = Signal.PARTIAL;
             } else {
                 packetData = dataLeft;
-                signal = Signal.REGULAR.getString();
+                signal = Signal.REGULAR;
                 done = true;
             }
 
-            String seqString = PacketUtils.convertToHexString(nextSequence);
+            String seqString = PacketUtils.convertIntToHexString(nextSequence);
 
-            String staticData = buildDelimitedString(seqString, signal,
-                    packetData);
+            String staticData = buildDelimitedString(seqString,
+                    signal.getString(), packetData);
 
             String checksum = PacketUtils.getChecksum(Protocol.CHECKSUM_LENGTH,
                     staticData);
@@ -78,7 +78,7 @@ public class SequentialRIPPacketGenerator extends PacketGenerator {
                     staticData, checksum);
 
             DatagramPacket packet = makePacket(payload);
-            RIPPacket ripPacket = new RIPPacket(nextSequence, packet);
+            RIPPacket ripPacket = new RIPPacket(nextSequence, packet, signal);
 
             packetList.add(ripPacket);
             ++nextSequence;

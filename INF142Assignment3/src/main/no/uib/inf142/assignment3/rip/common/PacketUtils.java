@@ -32,11 +32,11 @@ public class PacketUtils {
         return sb.toString();
     }
 
-    public static String convertToHexString(final int number) {
+    public static String convertIntToHexString(final int number) {
         return String.format("%08x", Integer.valueOf(number));
     }
 
-    public static int convertFromHexString(final String hex)
+    public static int convertFromHexStringToInt(final String hex)
             throws InvalidPacketException {
 
         return Integer.parseInt(hex, HEXADECIMAL);
@@ -68,22 +68,31 @@ public class PacketUtils {
 
     public static boolean validChecksum(final String toValidate,
             final String checksum) {
+
         String expected = getChecksum(checksum.length(), toValidate);
         return expected.equals(checksum);
     }
 
-    public static boolean validChecksumInPacket(final String packetData) {
+    public static void verifyChecksumInPayload(final String payload)
+            throws InvalidPacketException {
+
         int splits = Datafield.SEQUENCE.ordinal() + 1;
-        String[] items = packetData.split(Protocol.DATAFIELD_DELIMITER, splits);
+        String[] items = payload.split(Protocol.DATAFIELD_DELIMITER, splits);
         String interestingPart = items[splits - 1];
 
         int lastDelimiter = interestingPart
                 .lastIndexOf(Protocol.DATAFIELD_DELIMITER);
 
+        if (lastDelimiter == -1) {
+            throw new InvalidPacketException("Invalid packet");
+        }
+
         String toValidate = interestingPart.substring(0, lastDelimiter);
         String checksum = interestingPart.substring(lastDelimiter + 1).trim();
 
-        return validChecksum(toValidate, checksum);
+        if (!validChecksum(toValidate, checksum)) {
+            throw new InvalidPacketException("Wrong checksum");
+        }
     }
 
     public static String getPayloadFromPacket(final DatagramPacket packet) {

@@ -92,10 +92,12 @@ public class RIPSocket implements Closeable {
      */
     @Override
     public final void close() {
-        for (RIPThread thread : threads) {
-            thread.interrupt();
-        }
+//        for (RIPThread thread : threads) {
+//            thread.interrupt();
+//        }
+        threads.get(1).interrupt();
+        threads.get(2).interrupt();
 
-        socket.close();
+        //socket.close();
     }
 }

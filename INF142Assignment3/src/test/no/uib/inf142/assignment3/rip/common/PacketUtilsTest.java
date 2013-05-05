@@ -64,24 +64,24 @@ public class PacketUtilsTest {
     }
 
     @Test
-    public void validChecksumInNormalPacket() {
+    public void validChecksumInNormalPacket() throws InvalidPacketException {
         String packetData = "/127.0.0.1;62428;00000001;P;hijklmn;d4c  ";
 
-        assertTrue(PacketUtils.validChecksumInPacket(packetData));
+        PacketUtils.verifyChecksumInPayload(packetData);
     }
 
     @Test
-    public void validChecksumInPacketWithDelimiter() {
+    public void validChecksumInPacketWithDelimiter() throws InvalidPacketException {
         String packetData = "/127.0.0.1;62428;00000001;P;  hi;jklmn;  ;6b2  ";
 
-        assertTrue(PacketUtils.validChecksumInPacket(packetData));
+        PacketUtils.verifyChecksumInPayload(packetData);
     }
 
     @Test
-    public void validChecksumInSignalPacket() {
+    public void validChecksumInSignalPacket() throws InvalidPacketException {
         String packetData = "/127.0.0.1;55939;00000000;S;166              ";
 
-        assertTrue(PacketUtils.validChecksumInPacket(packetData));
+        PacketUtils.verifyChecksumInPayload(packetData);
     }
 
     @Test
@@ -96,7 +96,7 @@ public class PacketUtilsTest {
     public void leadingZerosInHexString() {
         int number = 161;
         String expected = "000000a1";
-        String actual = PacketUtils.convertToHexString(number);
+        String actual = PacketUtils.convertIntToHexString(number);
 
         assertEquals(expected, actual);
     }
@@ -105,7 +105,7 @@ public class PacketUtilsTest {
     public void noLeadingZerosInHexString() {
         int number = 161;
         String expected = "a1";
-        String actual = PacketUtils.convertToHexString(number);
+        String actual = PacketUtils.convertIntToHexString(number);
 
         assertFalse(expected.equals(actual));
     }
@@ -113,8 +113,8 @@ public class PacketUtilsTest {
     @Test
     public void hexOfNumberGreaterThanIntegerMax() {
         int number = Integer.MAX_VALUE;
-        String expected = PacketUtils.convertToHexString(Integer.MIN_VALUE);
-        String actual = PacketUtils.convertToHexString(number + 1);
+        String expected = PacketUtils.convertIntToHexString(Integer.MIN_VALUE);
+        String actual = PacketUtils.convertIntToHexString(number + 1);
 
         assertEquals(expected, actual);
     }
@@ -122,8 +122,8 @@ public class PacketUtilsTest {
     @Test
     public void hexToIntAndBack() throws InvalidPacketException {
         String expected = "0000e0c4";
-        int number = PacketUtils.convertFromHexString(expected);
-        String actual = PacketUtils.convertToHexString(number);
+        int number = PacketUtils.convertFromHexStringToInt(expected);
+        String actual = PacketUtils.convertIntToHexString(number);
 
         assertEquals(expected, actual);
     }
@@ -131,8 +131,8 @@ public class PacketUtilsTest {
     @Test
     public void intToHexAndBack() throws InvalidPacketException {
         int expected = 846205;
-        String hex = PacketUtils.convertToHexString(expected);
-        int actual = PacketUtils.convertFromHexString(hex);
+        String hex = PacketUtils.convertIntToHexString(expected);
+        int actual = PacketUtils.convertFromHexStringToInt(hex);
 
         assertEquals(expected, actual);
     }

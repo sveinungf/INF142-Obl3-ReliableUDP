@@ -9,7 +9,6 @@ import java.util.Scanner;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 
 public class ClientMain {
-    // TODO connection setup
     // TODO connection tear-down
     // TODO ACKSender: DON'T ignore sequence < expected, send an ACK
     public static void main(final String[] args) {
@@ -35,11 +34,20 @@ public class ClientMain {
             while (!input.equals("exit")) {
                 input = kbd.nextLine();
 
-                ripsocket.send(input);
+                if (!input.equals("exit")) {
+                    ripsocket.send(input);
+                }
             }
             kbd.close();
             ripsocket.close();
         } catch (SocketException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

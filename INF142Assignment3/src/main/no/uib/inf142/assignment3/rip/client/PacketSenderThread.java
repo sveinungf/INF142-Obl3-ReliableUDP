@@ -16,17 +16,17 @@ public class PacketSenderThread extends RIPThread {
 
     private static final int WAITTIME_IN_MILLIS = 10;
 
-    private BlockingQueue<RIPPacket> packetBuffer;
+    private BlockingQueue<RIPPacket> outPacketBuffer;
     private BlockingQueue<RIPPacket> window;
     private DatagramSocket socket;
     private SimpleTimer timer;
 
     public PacketSenderThread(final DatagramSocket socket,
-            final BlockingQueue<RIPPacket> packetBuffer,
+            final BlockingQueue<RIPPacket> outPacketBuffer,
             final BlockingQueue<RIPPacket> window) {
 
         this.window = window;
-        this.packetBuffer = packetBuffer;
+        this.outPacketBuffer = outPacketBuffer;
         this.socket = socket;
         timer = new SimpleTimer(Protocol.TIMEOUT_IN_MILLIS);
     }
@@ -36,7 +36,7 @@ public class PacketSenderThread extends RIPThread {
         int attempts = 0;
 
         try {
-            RIPPacket syn = packetBuffer.take();
+            RIPPacket syn = outPacketBuffer.take();
             RIPPacket ack = null;
             window.put(syn);
 
@@ -48,7 +48,7 @@ public class PacketSenderThread extends RIPThread {
                 String payload = PacketUtils.getPayloadFromPacket(packet);
                 System.out.println("[PacketSender] Sent: \"" + payload + "\"");
 
-                ack = packetBuffer.poll(Protocol.TIMEOUT_IN_MILLIS,
+                ack = outPacketBuffer.poll(Protocol.TIMEOUT_IN_MILLIS,
                         TimeUnit.MILLISECONDS);
 
                 ++attempts;
@@ -69,8 +69,10 @@ public class PacketSenderThread extends RIPThread {
 
             String payload = PacketUtils.getPayloadFromPacket(packet);
             System.out.println("[PacketSender] Sent: \"" + payload + "\"");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             active = false;
+            exception = e;
+        } catch (InterruptedException e) {
             exception = e;
         }
     }
@@ -110,10 +112,10 @@ public class PacketSenderThread extends RIPThread {
                     timer.restart();
                 } else if (timeout) {
                     timer.restart();
-                } else if (!packetBuffer.isEmpty() && !windowFull) {
+                } else if (!outPacketBuffer.isEmpty() && !windowFull) {
                     attempts = 0;
 
-                    RIPPacket ripPacket = packetBuffer.take();
+                    RIPPacket ripPacket = outPacketBuffer.take();
 
                     if (window.isEmpty()) {
                         timer.restart();
@@ -131,9 +133,89 @@ public class PacketSenderThread extends RIPThread {
                     Thread.sleep(WAITTIME_IN_MILLIS);
                 }
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             active = false;
             exception = e;
+        } catch (InterruptedException e) {
+            exception = e;
+        }
+
+        System.out.println("[PacketSender] active: " + active);
+        if (active) {
+            connectionTeardown();
+        }
+    }
+
+    private void connectionTeardown() {
+        int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
+        int attempts = 0;
+
+        try {
+            RIPPacket fin = outPacketBuffer.take();
+            int finSequence = fin.getSequence();
+
+            window.put(fin);
+            boolean finInWindow = true;
+
+            DatagramPacket packet = fin.getDatagramPacket();
+
+            while (finInWindow && attempts < maxAttempts) {
+                socket.send(packet);
+
+                String payload = PacketUtils.getPayloadFromPacket(packet);
+                System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+
+                // FIN wait 1
+                synchronized (window) {
+                    window.wait(Protocol.TIMEOUT_IN_MILLIS);
+                }
+
+                ++attempts;
+
+                finInWindow = false;
+                for (RIPPacket current : window) {
+                    if (current.getSequence() == finSequence) {
+                        finInWindow = true;
+                        break;
+                    }
+                }
+
+                if (finInWindow && attempts < maxAttempts) {
+                    System.out.println("[PacketSender] Timeout, resending FIN");
+                }
+            }
+
+            if (attempts >= maxAttempts) {
+                System.out.println("[PacketSender] "
+                        + "Closing, reached max connection attempts");
+                throw new SocketException("Reached max connection attempts");
+            }
+
+            // FIN wait 2
+            RIPPacket ack = outPacketBuffer.take();
+            boolean serverGotLastACK = false;
+            packet = ack.getDatagramPacket();
+
+            while (!serverGotLastACK) {
+                socket.send(packet);
+
+                String payload = PacketUtils.getPayloadFromPacket(packet);
+                System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+
+                // Time wait
+                ack = outPacketBuffer.poll(Protocol.FIN_TIME_WAIT,
+                        TimeUnit.MILLISECONDS);
+
+                if (ack != null) {
+                    packet = ack.getDatagramPacket();
+                    socket.send(packet);
+                } else {
+                    serverGotLastACK = true;
+                }
+            }
+        } catch (IOException | InterruptedException e) {
+            exception = e;
+            e.printStackTrace();
         }
     }
 }
