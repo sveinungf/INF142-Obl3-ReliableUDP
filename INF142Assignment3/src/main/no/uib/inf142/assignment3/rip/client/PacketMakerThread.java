@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
 import no.uib.inf142.assignment3.rip.common.SequentialRIPPacketGenerator;
-import no.uib.inf142.assignment3.rip.common.Signal;
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class PacketMakerThread extends RIPThread {
@@ -74,8 +74,6 @@ public class PacketMakerThread extends RIPThread {
         if (active) {
             connectionTeardown();
         }
-
-        System.out.println("[PacketMaker] Done");
     }
 
     private void connectionTeardown() {

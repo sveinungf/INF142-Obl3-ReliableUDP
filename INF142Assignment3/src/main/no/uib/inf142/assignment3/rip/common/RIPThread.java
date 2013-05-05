@@ -12,6 +12,14 @@ public abstract class RIPThread extends Thread {
         exception = new Exception("An error occured");
     }
 
+    public final boolean isActive() {
+        return active;
+    }
+
+    public final void setActive(final boolean active) {
+        this.active = active;
+    }
+
     public final boolean isClosed() {
         return closed;
     }

@@ -8,6 +8,9 @@ import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import no.uib.inf142.assignment3.rip.common.enums.Datafield;
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
+import no.uib.inf142.assignment3.rip.common.enums.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 
 public class PacketUtils {

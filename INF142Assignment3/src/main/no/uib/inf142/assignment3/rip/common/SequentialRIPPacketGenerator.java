@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import no.uib.inf142.assignment3.rip.common.enums.Datafield;
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class SequentialRIPPacketGenerator extends PacketGenerator {

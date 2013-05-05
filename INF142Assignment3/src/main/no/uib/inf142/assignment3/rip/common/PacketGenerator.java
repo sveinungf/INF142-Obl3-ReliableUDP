@@ -3,6 +3,7 @@ package no.uib.inf142.assignment3.rip.common;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
 import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class PacketGenerator {

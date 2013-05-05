@@ -49,10 +49,12 @@ public class RIPSocket implements Closeable {
         threads.add(new ACKReceiverThread(inPacketBuffer, window, socket,
                 sequence));
 
-        threads.add(new PacketMakerThread(dataBuffer, inPacketBuffer,
-                outPacketBuffer, server, relay, sequence));
+        RIPThread packetMakerThread = new PacketMakerThread(dataBuffer,
+                inPacketBuffer, outPacketBuffer, server, relay, sequence);
+        threads.add(packetMakerThread);
 
-        threads.add(new PacketSenderThread(socket, outPacketBuffer, window));
+        threads.add(new PacketSenderThread(socket, outPacketBuffer, window,
+                packetMakerThread));
 
         for (RIPThread thread : threads) {
             thread.start();

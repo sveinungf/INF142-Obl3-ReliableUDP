@@ -2,6 +2,8 @@ package no.uib.inf142.assignment3.rip.common;
 
 import java.net.DatagramPacket;
 
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
+
 public class RIPPacket {
 
     private final int sequence;

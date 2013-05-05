@@ -1,4 +1,6 @@
-package no.uib.inf142.assignment3.rip.common;
+package no.uib.inf142.assignment3.rip.common.enums;
+
+import no.uib.inf142.assignment3.rip.common.Protocol;
 
 public enum Datafield {
 

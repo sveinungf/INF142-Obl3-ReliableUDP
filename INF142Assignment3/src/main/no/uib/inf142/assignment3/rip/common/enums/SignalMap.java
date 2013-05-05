@@ -1,7 +1,8 @@
-package no.uib.inf142.assignment3.rip.common;
+package no.uib.inf142.assignment3.rip.common.enums;
 
 import java.util.HashMap;
 import java.util.Map;
+
 
 public final class SignalMap {
 

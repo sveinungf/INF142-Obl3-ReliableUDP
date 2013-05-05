@@ -11,7 +11,7 @@ import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
-import no.uib.inf142.assignment3.rip.common.Signal;
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
 
 public class PacketSenderThread extends RIPThread {
 
@@ -20,15 +20,18 @@ public class PacketSenderThread extends RIPThread {
     private BlockingQueue<RIPPacket> outPacketBuffer;
     private BlockingQueue<RIPPacket> window;
     private DatagramSocket socket;
+    private RIPThread packetMakerThread;
     private SimpleTimer timer;
 
     public PacketSenderThread(final DatagramSocket socket,
             final BlockingQueue<RIPPacket> outPacketBuffer,
-            final BlockingQueue<RIPPacket> window) {
+            final BlockingQueue<RIPPacket> window,
+            final RIPThread packetMakerThread) {
 
         this.window = window;
         this.outPacketBuffer = outPacketBuffer;
         this.socket = socket;
+        this.packetMakerThread = packetMakerThread;
         timer = new SimpleTimer(Protocol.TIMEOUT_IN_MILLIS);
     }
 
@@ -164,6 +167,9 @@ public class PacketSenderThread extends RIPThread {
         } catch (InterruptedException e) {
             exception = e;
         }
+
+        packetMakerThread.setActive(false);
+        packetMakerThread.interrupt();
 
         System.out.println("[PacketSender] Connection successfully closed");
         socket.close();

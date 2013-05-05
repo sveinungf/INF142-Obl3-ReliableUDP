@@ -6,13 +6,13 @@ import java.net.DatagramSocket;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 
-import no.uib.inf142.assignment3.rip.common.Datafield;
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
-import no.uib.inf142.assignment3.rip.common.Signal;
-import no.uib.inf142.assignment3.rip.common.SignalMap;
+import no.uib.inf142.assignment3.rip.common.enums.Datafield;
+import no.uib.inf142.assignment3.rip.common.enums.Signal;
+import no.uib.inf142.assignment3.rip.common.enums.SignalMap;
 import no.uib.inf142.assignment3.rip.exception.InvalidPacketException;
 
 public class ACKReceiverThread extends RIPThread {

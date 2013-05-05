@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
@@ -60,25 +61,29 @@ public class RIPServerSocket implements Closeable {
      *             {@code RIPServerSocket} started have died.
      */
     public final String receive() throws SocketException {
-        String data;
+        String data = null;
 
-        if (dataBuffer.peek() == null) {
-            if (socket.isClosed()) {
-                throw new SocketException("Lost connection");
-            }
+        while (data == null) {
+            if (dataBuffer.peek() == null) {
+                if (socket.isClosed()) {
+                    throw new SocketException("Lost connection");
+                }
 
-            for (RIPThread thread : threads) {
-                if (!thread.isAlive() || thread.isClosed()) {
-                    String error = thread.getException().getMessage();
-                    throw new SocketException(error);
+                for (RIPThread thread : threads) {
+                    if (!thread.isAlive() || thread.isClosed()) {
+                        String error = thread.getException().getMessage();
+                        throw new SocketException(error);
+                    }
                 }
             }
-        }
 
-        try {
-            data = dataBuffer.take();
-        } catch (InterruptedException e) {
-            throw new SocketException("Interrupted while fetching from buffer");
+            try {
+                data = dataBuffer.poll(Protocol.TIMEOUT_IN_MILLIS,
+                        TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                throw new SocketException(
+                        "Interrupted while fetching from buffer");
+            }
         }
 
         return data;
