@@ -52,7 +52,7 @@ public class Protocol {
      * The minimum time the client will wait after sending the last ACK in
      * connection tear-down, before closing.
      */
-    public static final long FIN_TIME_WAIT = 10000;
+    public static final long FIN_TIME_WAIT = 5000;
 
     /**
      * The maximum number of attempts a sender will send a packet before giving

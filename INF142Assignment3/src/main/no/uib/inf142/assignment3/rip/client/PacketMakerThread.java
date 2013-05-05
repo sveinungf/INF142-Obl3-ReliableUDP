@@ -38,7 +38,12 @@ public class PacketMakerThread extends RIPThread {
             outPacketBuffer.put(syn);
 
             // SYN ACK
-            inPacketBuffer.take();
+            RIPPacket ripPacket = null;
+            Signal signal = null;
+            while (signal != Signal.SYNACK) {
+                ripPacket = inPacketBuffer.take();
+                signal = ripPacket.getSignal();
+            }
 
             RIPPacket ack = packetGen.makeSignalPacket(Signal.ACK);
             outPacketBuffer.put(ack);
@@ -69,7 +74,7 @@ public class PacketMakerThread extends RIPThread {
         if (active) {
             connectionTeardown();
         }
-        
+
         System.out.println("[PacketMaker] Done");
     }
 
@@ -78,14 +83,22 @@ public class PacketMakerThread extends RIPThread {
             RIPPacket fin = packetGen.makeSignalPacket(Signal.FIN);
             outPacketBuffer.put(fin);
 
-            // ACK
-            inPacketBuffer.take();
+            // ACK from server
+            RIPPacket ripPacket = null;
+            Signal signal = null;
+            while (signal != Signal.ACK) {
+                ripPacket = inPacketBuffer.take();
+                signal = ripPacket.getSignal();
+            }
 
-            // FIN
-            inPacketBuffer.take();
+            // FIN from server
+            while (signal != Signal.FIN) {
+                ripPacket = inPacketBuffer.take();
+                signal = ripPacket.getSignal();
+            }
 
-            RIPPacket ack = packetGen.makeSignalPacket(Signal.ACK);
-            outPacketBuffer.put(ack);
+            RIPPacket lastACK = packetGen.makeSignalPacket(Signal.ACK);
+            outPacketBuffer.put(lastACK);
         } catch (InterruptedException | TooShortPacketLengthException e) {
             exception = e;
         }

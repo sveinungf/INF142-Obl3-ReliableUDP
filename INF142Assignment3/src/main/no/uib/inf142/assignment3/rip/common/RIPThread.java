@@ -14,6 +14,14 @@ public abstract class RIPThread extends Thread {
         return exception;
     }
 
+    public final boolean isActive() {
+        return active;
+    }
+
+    public final void setActive(final boolean active) {
+        this.active = active;
+    }
+
     @Override
     public abstract void run();
 }

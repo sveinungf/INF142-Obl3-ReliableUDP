@@ -3,7 +3,6 @@ package no.uib.inf142.assignment3.rip.client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.SocketTimeoutException;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 
@@ -69,6 +68,8 @@ public class ACKReceiverThread extends RIPThread {
 
     @Override
     public final void run() {
+        boolean closing = false;
+
         while (active && !Thread.interrupted()) {
             try {
                 byte[] byteData = new byte[Protocol.PACKETDATA_LENGTH];
@@ -76,6 +77,14 @@ public class ACKReceiverThread extends RIPThread {
                         byteData.length);
 
                 socket.receive(ack);
+
+                synchronized (window) {
+                    window.notify();
+                }
+
+                if (Thread.interrupted()) {
+                    closing = true;
+                }
 
                 RIPPacket ripPacket = getVerifiedRIPPacket(ack);
 
@@ -86,8 +95,26 @@ public class ACKReceiverThread extends RIPThread {
                     System.out.println("[ACKReceiver] Received expected: \""
                             + payload + "\"");
 
-                    if (ripPacket.getSignal() == Signal.SYNACK) {
+                    Signal signal = ripPacket.getSignal();
+
+                    switch (signal) {
+                    case SYNACK:
                         inPacketBuffer.put(ripPacket);
+                        break;
+                    case ACK:
+                        if (closing) {
+                            System.out.println("[ACKReceiver] "
+                                    + "Waiting for server application");
+
+                            inPacketBuffer.put(ripPacket);
+                        }
+                        break;
+                    case FIN:
+                        if (closing) {
+                            inPacketBuffer.put(ripPacket);
+                        }
+                    default:
+                        break;
                     }
 
                     removePacketsFromWindow(sequence);
@@ -106,51 +133,6 @@ public class ACKReceiverThread extends RIPThread {
             } catch (InterruptedException e) {
                 exception = e;
                 interrupt();
-            }
-        }
-
-        if (active) {
-            connectionTeardown();
-        }
-    }
-
-    private void connectionTeardown() {
-        boolean serverGotLastACK = false;
-
-        while (active && !serverGotLastACK) {
-            try {
-                byte[] byteData = new byte[Protocol.PACKETDATA_LENGTH];
-                DatagramPacket ack = new DatagramPacket(byteData,
-                        byteData.length);
-
-                socket.receive(ack);
-
-                RIPPacket ripPacket = getVerifiedRIPPacket(ack);
-
-                String payload = PacketUtils.getPayloadFromPacket(ack);
-                int sequence = ripPacket.getSequence();
-
-                if (sequence >= expectedSequence) {
-                    System.out.println("[ACKReceiver] Received expected: \""
-                            + payload + "\"");
-
-                    removePacketsFromWindow(sequence);
-                    inPacketBuffer.put(ripPacket);
-                    expectedSequence = sequence + 1;
-
-                    if (ripPacket.getSignal() == Signal.FIN) {
-                        socket.setSoTimeout((int) Protocol.FIN_TIME_WAIT);
-                    }
-                }
-            } catch (InvalidPacketException e) {
-                System.out.println("[ACKReceiver] " + e.getMessage()
-                        + ", ignored");
-            } catch (SocketTimeoutException e) {
-                serverGotLastACK = true;
-                socket.close();
-            } catch (IOException | InterruptedException e) {
-                active = false;
-                exception = e;
             }
         }
     }

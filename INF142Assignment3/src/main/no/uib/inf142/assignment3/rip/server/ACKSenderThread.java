@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Datafield;
@@ -22,6 +23,7 @@ public class ACKSenderThread extends RIPThread {
     private int relayListeningPort;
     private BlockingQueue<DatagramPacket> packetBuffer;
     private BlockingQueue<String> dataBuffer;
+    private DatagramPacket lastSent;
     private DatagramSocket socket;
     private StringBuilder stringBuilder;
 
@@ -34,12 +36,17 @@ public class ACKSenderThread extends RIPThread {
         this.relayListeningPort = relayListeningPort;
         this.packetBuffer = packetBuffer;
         this.dataBuffer = dataBuffer;
+        lastSent = null;
         this.socket = socket;
         stringBuilder = new StringBuilder();
     }
 
     @Override
     public final void run() {
+        boolean opening = false;
+        boolean open = false;
+        boolean closing = false;
+
         while (active && !Thread.interrupted()) {
             try {
                 DatagramPacket packet = packetBuffer.take();
@@ -50,11 +57,12 @@ public class ACKSenderThread extends RIPThread {
 
                 String payload = PacketUtils.getPayloadFromPacket(packet);
                 PacketUtils.verifyChecksumInPayload(payload);
-                
+
                 String[] datafields = PacketUtils.getDatafields(payload);
 
                 String sequenceString = datafields[Datafield.SEQUENCE.ordinal()];
-                int sequence = PacketUtils.convertFromHexStringToInt(sequenceString);
+                int sequence = PacketUtils
+                        .convertFromHexStringToInt(sequenceString);
 
                 String ipString = datafields[Datafield.IP.ordinal()];
                 String portString = datafields[Datafield.PORT.ordinal()];
@@ -62,9 +70,16 @@ public class ACKSenderThread extends RIPThread {
                 InetSocketAddress source = PacketUtils.parseSocketAddress(
                         ipString, portString);
 
-                if (sequence != expectedSequence) {
+                if (sequence > expectedSequence) {
                     throw new InvalidPacketException(
-                            "Got unexpected sequence, ignored");
+                            "Sequence higher than expected, ignored");
+                } else if (sequence < expectedSequence) {
+                    if (lastSent != null) {
+                        socket.send(lastSent);
+                    }
+
+                    throw new InvalidPacketException(
+                            "Sequence less than expected, resent last packet");
                 }
 
                 ++expectedSequence;
@@ -75,19 +90,33 @@ public class ACKSenderThread extends RIPThread {
                 Signal signal = SignalMap.getInstance().getByString(
                         signalString);
 
-                if (signal == Signal.SYN) {
+                switch (signal) {
+                case SYN:
+                    opening = true;
+                    closing = false;
                     DatagramPacket synack = packetGen.makeSignalPacket(
                             sequence, Signal.SYNACK);
 
                     socket.send(synack);
+                    lastSent = synack;
 
                     payload = PacketUtils.getPayloadFromPacket(synack);
                     System.out.println("[ACKSender] Sent: \"" + payload + "\"");
-                } else if (signal == Signal.REGULAR || signal == Signal.PARTIAL) {
+                    break;
+                case PARTIAL:
+                case REGULAR:
+                    if (!open) {
+                        throw new InvalidPacketException(
+                                "Connection not opened properly");
+                    }
+
+                    opening = false;
+                    closing = false;
                     DatagramPacket ack = packetGen.makeSignalPacket(sequence,
                             Signal.ACK);
 
                     socket.send(ack);
+                    lastSent = ack;
 
                     payload = PacketUtils.getPayloadFromPacket(ack);
                     System.out.println("[ACKSender] Sent: \"" + payload + "\"");
@@ -100,6 +129,49 @@ public class ACKSenderThread extends RIPThread {
                         dataBuffer.put(stringBuilder.toString());
                         stringBuilder = new StringBuilder();
                     }
+                    break;
+                case FIN:
+                    if (!open) {
+                        throw new InvalidPacketException(
+                                "Connection not opened properly");
+                    }
+
+                    opening = false;
+                    closing = true;
+
+                    // TODO close application
+
+                    DatagramPacket finack = packetGen.makeSignalPacket(
+                            sequence, Signal.ACK);
+
+                    socket.send(finack);
+                    lastSent = finack;
+
+                    payload = PacketUtils.getPayloadFromPacket(finack);
+                    System.out.println("[ACKSender] Sent: \"" + payload + "\"");
+
+                    // TODO application closed
+
+                    DatagramPacket lastfin = packetGen.makeSignalPacket(
+                            sequence + 1, signal);
+
+                    socket.send(lastfin);
+                    lastSent = lastfin;
+
+                    payload = PacketUtils.getPayloadFromPacket(lastfin);
+                    System.out.println("[ACKSender] Sent: \"" + payload + "\"");
+                    break;
+                case ACK:
+                    if (opening) {
+                        opening = false;
+                        open = true;
+                    } else if (closing) {
+                        throw new SocketException("Connection closed");
+                    }
+                    break;
+                default:
+                    break;
+
                 }
             } catch (InvalidPacketException e) {
                 System.out.println("[ACKSender] " + e.getMessage());
@@ -110,5 +182,8 @@ public class ACKSenderThread extends RIPThread {
                 exception = e;
             }
         }
+
+        System.out.println("[ACKSender] Connection successfully closed");
+        socket.close();
     }
 }

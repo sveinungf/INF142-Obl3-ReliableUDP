@@ -11,6 +11,7 @@ import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
+import no.uib.inf142.assignment3.rip.common.Signal;
 
 public class PacketSenderThread extends RIPThread {
 
@@ -81,16 +82,15 @@ public class PacketSenderThread extends RIPThread {
     public final void run() {
         connectionSetup();
 
+        boolean closing = false;
         int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
         int attempts = 0;
-        int maxWindowSize = Protocol.WINDOW_SIZE;
 
         timer.restart();
 
         try {
             while (active && !Thread.interrupted()) {
                 boolean timeout = timer.timedOut();
-                boolean windowFull = window.size() > maxWindowSize;
 
                 if (timeout && !window.isEmpty()) {
                     ++attempts;
@@ -112,7 +112,9 @@ public class PacketSenderThread extends RIPThread {
                     timer.restart();
                 } else if (timeout) {
                     timer.restart();
-                } else if (!outPacketBuffer.isEmpty() && !windowFull) {
+                } else if (!outPacketBuffer.isEmpty()
+                        && window.remainingCapacity() > 0) {
+
                     attempts = 0;
 
                     RIPPacket ripPacket = outPacketBuffer.take();
@@ -129,6 +131,32 @@ public class PacketSenderThread extends RIPThread {
                     String payload = PacketUtils.getPayloadFromPacket(packet);
                     System.out.println("[PacketSender] Sent: \"" + payload
                             + "\"");
+
+                    Signal signal = ripPacket.getSignal();
+
+                    switch (signal) {
+                    case FIN:
+                        closing = true;
+                        break;
+                    case ACK:
+                        if (closing) {
+                            System.out.println("Lets wait");
+                            synchronized (window) {
+                                window.wait(Protocol.FIN_TIME_WAIT);
+                            }
+
+                            System.out.println("Done waiting");
+                            if (outPacketBuffer.peek() == null) {
+                                throw new SocketException("Connection closed");
+                            } else {
+                                System.out.println("outPacketBuffer not empty");
+                            }
+                        }
+                        break;
+                    default:
+                        closing = false;
+                        break;
+                    }
                 } else {
                     Thread.sleep(WAITTIME_IN_MILLIS);
                 }
@@ -140,82 +168,7 @@ public class PacketSenderThread extends RIPThread {
             exception = e;
         }
 
-        System.out.println("[PacketSender] active: " + active);
-        if (active) {
-            connectionTeardown();
-        }
-    }
-
-    private void connectionTeardown() {
-        int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
-        int attempts = 0;
-
-        try {
-            RIPPacket fin = outPacketBuffer.take();
-            int finSequence = fin.getSequence();
-
-            window.put(fin);
-            boolean finInWindow = true;
-
-            DatagramPacket packet = fin.getDatagramPacket();
-
-            while (finInWindow && attempts < maxAttempts) {
-                socket.send(packet);
-
-                String payload = PacketUtils.getPayloadFromPacket(packet);
-                System.out.println("[PacketSender] Sent: \"" + payload + "\"");
-
-                // FIN wait 1
-                synchronized (window) {
-                    window.wait(Protocol.TIMEOUT_IN_MILLIS);
-                }
-
-                ++attempts;
-
-                finInWindow = false;
-                for (RIPPacket current : window) {
-                    if (current.getSequence() == finSequence) {
-                        finInWindow = true;
-                        break;
-                    }
-                }
-
-                if (finInWindow && attempts < maxAttempts) {
-                    System.out.println("[PacketSender] Timeout, resending FIN");
-                }
-            }
-
-            if (attempts >= maxAttempts) {
-                System.out.println("[PacketSender] "
-                        + "Closing, reached max connection attempts");
-                throw new SocketException("Reached max connection attempts");
-            }
-
-            // FIN wait 2
-            RIPPacket ack = outPacketBuffer.take();
-            boolean serverGotLastACK = false;
-            packet = ack.getDatagramPacket();
-
-            while (!serverGotLastACK) {
-                socket.send(packet);
-
-                String payload = PacketUtils.getPayloadFromPacket(packet);
-                System.out.println("[PacketSender] Sent: \"" + payload + "\"");
-
-                // Time wait
-                ack = outPacketBuffer.poll(Protocol.FIN_TIME_WAIT,
-                        TimeUnit.MILLISECONDS);
-
-                if (ack != null) {
-                    packet = ack.getDatagramPacket();
-                    socket.send(packet);
-                } else {
-                    serverGotLastACK = true;
-                }
-            }
-        } catch (IOException | InterruptedException e) {
-            exception = e;
-            e.printStackTrace();
-        }
+        System.out.println("[PacketSender] Connection successfully closed");
+        socket.close();
     }
 }

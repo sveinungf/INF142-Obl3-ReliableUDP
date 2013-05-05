@@ -41,10 +41,10 @@ public class RIPServerSocket implements Closeable {
 
         BlockingQueue<DatagramPacket> packetBuffer = new LinkedBlockingQueue<DatagramPacket>();
 
-        threads.add(new PacketReceiverThread(socket, packetBuffer));
-
         threads.add(new ACKSenderThread(socket, packetBuffer, dataBuffer,
                 relayPort, startingSequence));
+
+        threads.add(new PacketReceiverThread(socket, packetBuffer));
 
         for (RIPThread thread : threads) {
             thread.start();
@@ -89,10 +89,6 @@ public class RIPServerSocket implements Closeable {
      */
     @Override
     public final void close() {
-        for (RIPThread thread : threads) {
-            thread.interrupt();
-        }
-
-        socket.close();
+        threads.get(0).interrupt();
     }
 }

@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -42,7 +43,8 @@ public class RIPSocket implements Closeable {
 
         BlockingQueue<RIPPacket> inPacketBuffer = new LinkedBlockingQueue<RIPPacket>();
         BlockingQueue<RIPPacket> outPacketBuffer = new LinkedBlockingQueue<RIPPacket>();
-        BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
+        BlockingQueue<RIPPacket> window = new ArrayBlockingQueue<RIPPacket>(
+                Protocol.WINDOW_SIZE);
 
         threads.add(new ACKReceiverThread(inPacketBuffer, window, socket,
                 sequence));
@@ -92,12 +94,13 @@ public class RIPSocket implements Closeable {
      */
     @Override
     public final void close() {
-//        for (RIPThread thread : threads) {
-//            thread.interrupt();
-//        }
+        // for (RIPThread thread : threads) {
+        // thread.interrupt();
+        // }
+        //threads.get(0).interrupt();
+        threads.get(0).interrupt();
         threads.get(1).interrupt();
-        threads.get(2).interrupt();
 
-        //socket.close();
+        // socket.close();
     }
 }
