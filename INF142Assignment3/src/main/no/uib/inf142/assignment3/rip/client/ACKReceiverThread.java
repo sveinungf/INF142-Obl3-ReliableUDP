@@ -78,10 +78,6 @@ public class ACKReceiverThread extends RIPThread {
 
                 socket.receive(ack);
 
-                synchronized (window) {
-                    window.notify();
-                }
-
                 if (Thread.interrupted()) {
                     closing = true;
                 }
@@ -112,6 +108,10 @@ public class ACKReceiverThread extends RIPThread {
                     case FIN:
                         if (closing) {
                             inPacketBuffer.put(ripPacket);
+
+                            synchronized (window) {
+                                window.notify();
+                            }
                         }
                     default:
                         break;

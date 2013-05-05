@@ -60,18 +60,20 @@ public class RIPServerSocket implements Closeable {
      *             {@code RIPServerSocket} started have died.
      */
     public final String receive() throws SocketException {
-        if (socket.isClosed()) {
-            throw new SocketException("Lost connection");
-        }
+        String data;
 
-        for (RIPThread thread : threads) {
-            if (!thread.isAlive()) {
-                String error = thread.getException().getMessage();
-                throw new SocketException(error);
+        if (dataBuffer.peek() == null) {
+            if (socket.isClosed()) {
+                throw new SocketException("Lost connection");
+            }
+
+            for (RIPThread thread : threads) {
+                if (!thread.isAlive() || thread.isClosed()) {
+                    String error = thread.getException().getMessage();
+                    throw new SocketException(error);
+                }
             }
         }
-
-        String data = null;
 
         try {
             data = dataBuffer.take();

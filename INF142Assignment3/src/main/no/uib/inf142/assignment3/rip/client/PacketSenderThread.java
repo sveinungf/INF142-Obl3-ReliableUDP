@@ -140,16 +140,13 @@ public class PacketSenderThread extends RIPThread {
                         break;
                     case ACK:
                         if (closing) {
-                            System.out.println("Lets wait");
+                            System.out.println("[PacketSender] Time wait");
                             synchronized (window) {
                                 window.wait(Protocol.FIN_TIME_WAIT);
                             }
 
-                            System.out.println("Done waiting");
                             if (outPacketBuffer.peek() == null) {
                                 throw new SocketException("Connection closed");
-                            } else {
-                                System.out.println("outPacketBuffer not empty");
                             }
                         }
                         break;

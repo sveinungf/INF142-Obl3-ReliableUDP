@@ -97,7 +97,7 @@ public class RIPSocket implements Closeable {
         // for (RIPThread thread : threads) {
         // thread.interrupt();
         // }
-        //threads.get(0).interrupt();
+        // threads.get(0).interrupt();
         threads.get(0).interrupt();
         threads.get(1).interrupt();
 

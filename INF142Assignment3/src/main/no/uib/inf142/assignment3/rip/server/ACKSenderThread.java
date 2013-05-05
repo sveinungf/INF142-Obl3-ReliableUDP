@@ -139,8 +139,6 @@ public class ACKSenderThread extends RIPThread {
                     opening = false;
                     closing = true;
 
-                    // TODO close application
-
                     DatagramPacket finack = packetGen.makeSignalPacket(
                             sequence, Signal.ACK);
 
@@ -150,7 +148,8 @@ public class ACKSenderThread extends RIPThread {
                     payload = PacketUtils.getPayloadFromPacket(finack);
                     System.out.println("[ACKSender] Sent: \"" + payload + "\"");
 
-                    // TODO application closed
+                    exception = new SocketException("Connection is closing");
+                    closed = true;
 
                     DatagramPacket lastfin = packetGen.makeSignalPacket(
                             sequence + 1, signal);
@@ -171,7 +170,6 @@ public class ACKSenderThread extends RIPThread {
                     break;
                 default:
                     break;
-
                 }
             } catch (InvalidPacketException e) {
                 System.out.println("[ACKSender] " + e.getMessage());
