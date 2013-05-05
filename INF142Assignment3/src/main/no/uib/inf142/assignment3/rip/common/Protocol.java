@@ -46,7 +46,13 @@ public class Protocol {
     /**
      * The minimum time a sender will wait before it tries to resend a packet.
      */
-    public static final int TIMEOUT_IN_MILLIS = 5000;
+    public static final long TIMEOUT_IN_MILLIS = 5000;
+
+    /**
+     * The maximum number of attempts a sender will send a packet before giving
+     * up.
+     */
+    public static final int CONNECTION_ATTEMPTS = 3;
 
     /**
      * The default port which the server listens on.

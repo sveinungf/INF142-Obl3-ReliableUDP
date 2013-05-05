@@ -37,17 +37,14 @@ public class PacketMakerThread extends RIPThread {
             RIPPacket syn = packetGen.makeSignalPacket(Signal.SYN);
             outPacketBuffer.put(syn);
 
-            //SYN ACK
+            // SYN ACK
             inPacketBuffer.take();
-            
+
             RIPPacket ack = packetGen.makeSignalPacket(Signal.ACK);
             outPacketBuffer.put(ack);
-        } catch (TooShortPacketLengthException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (InterruptedException | TooShortPacketLengthException e) {
+            active = false;
+            exception = e;
         }
     }
 

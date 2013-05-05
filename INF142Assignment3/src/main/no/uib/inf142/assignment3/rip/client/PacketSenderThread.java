@@ -3,7 +3,9 @@ package no.uib.inf142.assignment3.rip.client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import no.uib.inf142.assignment3.rip.common.PacketUtils;
 import no.uib.inf142.assignment3.rip.common.Protocol;
@@ -30,30 +32,46 @@ public class PacketSenderThread extends RIPThread {
     }
 
     private void connectionSetup() {
+        int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
+        int attempts = 0;
+
         try {
             RIPPacket syn = packetBuffer.take();
+            RIPPacket ack = null;
             window.put(syn);
 
             DatagramPacket packet = syn.getDatagramPacket();
-            socket.send(packet);
 
-            // TODO timeout
-            String payload = PacketUtils.getPayloadFromPacket(packet);
-            System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+            while (ack == null && attempts < maxAttempts) {
+                socket.send(packet);
 
-            RIPPacket ack = packetBuffer.take();
+                String payload = PacketUtils.getPayloadFromPacket(packet);
+                System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+
+                ack = packetBuffer.poll(Protocol.TIMEOUT_IN_MILLIS,
+                        TimeUnit.MILLISECONDS);
+
+                ++attempts;
+
+                if (ack == null && attempts < maxAttempts) {
+                    System.out.println("[PacketSender] Timeout, resending SYN");
+                }
+            }
+
+            if (attempts >= maxAttempts) {
+                System.out.println("[PacketSender] "
+                        + "Closing, reached max connection attempts");
+                throw new SocketException("Reached max connection attempts");
+            }
 
             packet = ack.getDatagramPacket();
             socket.send(packet);
 
-            payload = PacketUtils.getPayloadFromPacket(packet);
+            String payload = PacketUtils.getPayloadFromPacket(packet);
             System.out.println("[PacketSender] Sent: \"" + payload + "\"");
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (IOException | InterruptedException e) {
+            active = false;
+            exception = e;
         }
     }
 
@@ -61,7 +79,10 @@ public class PacketSenderThread extends RIPThread {
     public final void run() {
         connectionSetup();
 
+        int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
+        int attempts = 0;
         int maxWindowSize = Protocol.WINDOW_SIZE;
+
         timer.restart();
 
         while (active && !Thread.interrupted()) {
@@ -69,17 +90,29 @@ public class PacketSenderThread extends RIPThread {
             boolean windowFull = window.size() > maxWindowSize;
 
             try {
-                if (timeout) {
-                    if (!window.isEmpty()) {
+                if (timeout && !window.isEmpty()) {
+                    ++attempts;
+
+                    if (attempts < maxAttempts) {
+                        System.out.println("[PacketSender] "
+                                + "Timeout, resending all in window");
+
                         for (RIPPacket ripPacket : window) {
                             socket.send(ripPacket.getDatagramPacket());
                         }
+                    } else {
                         System.out.println("[PacketSender] "
-                                + "Timeout, sent all in window");
+                                + "Closing, reached max connection attempts");
+                        throw new SocketException(
+                                "Reached max connection attempts");
                     }
 
                     timer.restart();
+                } else if (timeout) {
+                    timer.restart();
                 } else if (!packetBuffer.isEmpty() && !windowFull) {
+                    attempts = 0;
+
                     RIPPacket ripPacket = packetBuffer.take();
 
                     if (window.isEmpty()) {

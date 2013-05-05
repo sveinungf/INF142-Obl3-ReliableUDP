@@ -1,27 +1,23 @@
 package no.uib.inf142.assignment3.rip.client;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
-import no.uib.inf142.assignment3.rip.common.SequentialRIPPacketGenerator;
-import no.uib.inf142.assignment3.rip.common.Signal;
-import no.uib.inf142.assignment3.rip.exception.TooShortPacketLengthException;
 
 public class RIPSocket implements Closeable {
 
     private BlockingQueue<String> dataBuffer;
     private DatagramSocket socket;
-    private RIPThread ackReceiverThread;
-    private RIPThread packetMakerThread;
-    private RIPThread packetSenderThread;
+    private List<RIPThread> threads;
     private int sequence;
 
     /**
@@ -41,24 +37,24 @@ public class RIPSocket implements Closeable {
 
         dataBuffer = new LinkedBlockingQueue<String>();
         socket = new DatagramSocket();
+        threads = new ArrayList<RIPThread>();
         sequence = Protocol.SEQUENCE_START;
 
         BlockingQueue<RIPPacket> inPacketBuffer = new LinkedBlockingQueue<RIPPacket>();
         BlockingQueue<RIPPacket> outPacketBuffer = new LinkedBlockingQueue<RIPPacket>();
         BlockingQueue<RIPPacket> window = new LinkedBlockingQueue<RIPPacket>();
 
-        ackReceiverThread = new ACKReceiverThread(inPacketBuffer, window,
-                socket, sequence);
+        threads.add(new ACKReceiverThread(inPacketBuffer, window, socket,
+                sequence));
 
-        packetMakerThread = new PacketMakerThread(dataBuffer, inPacketBuffer,
-                outPacketBuffer, server, relay, sequence);
+        threads.add(new PacketMakerThread(dataBuffer, inPacketBuffer,
+                outPacketBuffer, server, relay, sequence));
 
-        packetSenderThread = new PacketSenderThread(socket, outPacketBuffer,
-                window);
+        threads.add(new PacketSenderThread(socket, outPacketBuffer, window));
 
-        ackReceiverThread.start();
-        packetMakerThread.start();
-        packetSenderThread.start();
+        for (RIPThread thread : threads) {
+            thread.start();
+        }
     }
 
     /**
@@ -75,19 +71,11 @@ public class RIPSocket implements Closeable {
             throw new SocketException("Lost connection");
         }
 
-        if (!ackReceiverThread.isAlive()) {
-            String error = ackReceiverThread.getException().getMessage();
-            throw new SocketException(error);
-        }
-
-        if (!packetMakerThread.isAlive()) {
-            String error = packetMakerThread.getException().getMessage();
-            throw new SocketException(error);
-        }
-
-        if (!packetSenderThread.isAlive()) {
-            String error = packetSenderThread.getException().getMessage();
-            throw new SocketException(error);
+        for (RIPThread thread : threads) {
+            if (!thread.isAlive()) {
+                String error = thread.getException().getMessage();
+                throw new SocketException(error);
+            }
         }
 
         try {
@@ -104,9 +92,9 @@ public class RIPSocket implements Closeable {
      */
     @Override
     public final void close() {
-        packetMakerThread.interrupt();
-        packetSenderThread.interrupt();
-        ackReceiverThread.interrupt();
+        for (RIPThread thread : threads) {
+            thread.interrupt();
+        }
 
         socket.close();
     }
