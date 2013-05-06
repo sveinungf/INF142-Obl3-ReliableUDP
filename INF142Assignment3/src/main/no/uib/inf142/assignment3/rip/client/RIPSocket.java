@@ -14,7 +14,7 @@ import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPPacket;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
 
-public class RIPSocket implements Closeable {
+public final class RIPSocket implements Closeable {
 
     private BlockingQueue<String> dataBuffer;
     private DatagramSocket socket;
@@ -70,7 +70,7 @@ public class RIPSocket implements Closeable {
      *             if the socket is closed, or any of the threads this
      *             {@code RIPSocket} started have died.
      */
-    public final void send(final String string) throws SocketException {
+    public void send(final String string) throws SocketException {
         if (socket.isClosed()) {
             throw new SocketException("Lost connection");
         }
@@ -95,14 +95,8 @@ public class RIPSocket implements Closeable {
      * @see java.io.Closeable#close()
      */
     @Override
-    public final void close() {
-        // for (RIPThread thread : threads) {
-        // thread.interrupt();
-        // }
-        // threads.get(0).interrupt();
+    public void close() {
         threads.get(0).interrupt();
         threads.get(1).interrupt();
-
-        // socket.close();
     }
 }

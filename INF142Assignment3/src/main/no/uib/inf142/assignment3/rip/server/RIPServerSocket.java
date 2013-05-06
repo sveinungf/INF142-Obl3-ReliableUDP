@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 import no.uib.inf142.assignment3.rip.common.RIPThread;
 
-public class RIPServerSocket implements Closeable {
+public final class RIPServerSocket implements Closeable {
 
     private BlockingQueue<String> dataBuffer;
     private DatagramSocket socket;
@@ -62,7 +62,7 @@ public class RIPServerSocket implements Closeable {
      *             if the socket is closed, or any of the threads this
      *             {@code RIPServerSocket} started have died.
      */
-    public final String receive() throws SocketException {
+    public String receive() throws SocketException {
         String data = null;
 
         while (data == null) {
@@ -97,7 +97,7 @@ public class RIPServerSocket implements Closeable {
      * @see java.io.Closeable#close()
      */
     @Override
-    public final void close() {
+    public void close() {
         threads.get(0).interrupt();
     }
 }
