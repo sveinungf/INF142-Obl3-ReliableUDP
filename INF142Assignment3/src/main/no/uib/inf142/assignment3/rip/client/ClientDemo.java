@@ -7,7 +7,7 @@ import java.util.Scanner;
 import no.uib.inf142.assignment3.rip.common.Protocol;
 
 public class ClientDemo {
-	// TODO increase packet length
+
 	public static void main(final String[] args) {
 		try {
 			Scanner in = new Scanner(System.in, Protocol.CHARSET.name());

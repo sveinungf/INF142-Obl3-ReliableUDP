@@ -17,7 +17,7 @@ public class Protocol {
 	/**
 	 * The length of the data in a packet.
 	 */
-	public static final int PACKETDATA_LENGTH = 45;
+	public static final int PACKETDATA_LENGTH = 64;
 
 	/**
 	 * The length of the checksum datafield in the packetdata.
