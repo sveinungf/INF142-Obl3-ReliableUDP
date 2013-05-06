@@ -17,7 +17,7 @@ public class Protocol {
 	/**
 	 * The length of the data in a packet.
 	 */
-	public static final int PACKETDATA_LENGTH = 64;
+	public static final int PACKETDATA_LENGTH = 56;
 
 	/**
 	 * The length of the checksum datafield in the packetdata.
@@ -32,12 +32,12 @@ public class Protocol {
 	/**
 	 * The length of the IP datafield in the packetdata.
 	 */
-	public static final int MAX_IP_LENGTH = 16;
+	public static final int MAX_IP_LENGTH = "/255.255.255.255".getBytes().length;
 
 	/**
 	 * The length of the port datafield in the packetdata.
 	 */
-	public static final int MAX_PORT_LENGTH = 5;
+	public static final int MAX_PORT_LENGTH = "65535".getBytes().length;
 
 	/**
 	 * The number which the sequence on each end will start on.
