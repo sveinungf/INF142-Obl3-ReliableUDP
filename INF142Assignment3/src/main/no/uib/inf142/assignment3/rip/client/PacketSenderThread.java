@@ -15,163 +15,164 @@ import no.uib.inf142.assignment3.rip.common.enums.Signal;
 
 public class PacketSenderThread extends RIPThread {
 
-    private static final int WAITTIME_IN_MILLIS = 10;
+	private static final int WAITTIME_IN_MILLIS = 10;
 
-    private BlockingQueue<RIPPacket> outPacketBuffer;
-    private BlockingQueue<RIPPacket> window;
-    private DatagramSocket socket;
-    private RIPThread packetMakerThread;
-    private SimpleTimer timer;
+	private BlockingQueue<RIPPacket> outPacketBuffer;
+	private BlockingQueue<RIPPacket> window;
+	private DatagramSocket socket;
+	private RIPThread packetMakerThread;
+	private SimpleTimer timer;
 
-    public PacketSenderThread(final DatagramSocket socket,
-            final BlockingQueue<RIPPacket> outPacketBuffer,
-            final BlockingQueue<RIPPacket> window,
-            final RIPThread packetMakerThread) {
+	public PacketSenderThread(final DatagramSocket socket,
+			final BlockingQueue<RIPPacket> outPacketBuffer,
+			final BlockingQueue<RIPPacket> window,
+			final RIPThread packetMakerThread) {
 
-        this.window = window;
-        this.outPacketBuffer = outPacketBuffer;
-        this.socket = socket;
-        this.packetMakerThread = packetMakerThread;
-        timer = new SimpleTimer(Protocol.SENDER_TIMEOUT);
-    }
+		this.window = window;
+		this.outPacketBuffer = outPacketBuffer;
+		this.socket = socket;
+		this.packetMakerThread = packetMakerThread;
+		timer = new SimpleTimer(Protocol.SENDER_TIMEOUT);
+	}
 
-    private void connectionSetup() {
-        int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
-        int attempts = 0;
+	private void connectionSetup() {
+		int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
+		int attempts = 0;
 
-        try {
-            RIPPacket syn = outPacketBuffer.take();
-            RIPPacket ack = null;
-            window.put(syn);
+		try {
+			RIPPacket syn = outPacketBuffer.take();
+			RIPPacket ack = null;
+			window.put(syn);
 
-            DatagramPacket packet = syn.getDatagramPacket();
+			DatagramPacket packet = syn.getDatagramPacket();
 
-            while (ack == null && attempts < maxAttempts) {
-                socket.send(packet);
+			while (ack == null && attempts < maxAttempts) {
+				socket.send(packet);
 
-                String payload = PacketUtils.getPayloadFromPacket(packet);
-                System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+				String payload = PacketUtils.getPayloadFromPacket(packet);
+				System.out.println("[PacketSender] Sent: \"" + payload + "\"");
 
-                ack = outPacketBuffer.poll(Protocol.SENDER_TIMEOUT,
-                        TimeUnit.MILLISECONDS);
+				ack = outPacketBuffer.poll(Protocol.SENDER_TIMEOUT,
+						TimeUnit.MILLISECONDS);
 
-                ++attempts;
+				++attempts;
 
-                if (ack == null && attempts < maxAttempts) {
-                    System.out.println("[PacketSender] Timeout, resending SYN");
-                }
-            }
+				if (ack == null && attempts < maxAttempts) {
+					System.out.println("[PacketSender] Timeout, resending SYN");
+				}
+			}
 
-            if (attempts >= maxAttempts) {
-                System.out.println("[PacketSender] "
-                        + "Closing, reached max connection attempts");
-                throw new SocketException("Reached max connection attempts");
-            }
+			if (attempts >= maxAttempts) {
+				System.out.println("[PacketSender] "
+						+ "Closing, reached max connection attempts");
+				throw new SocketException("Reached max connection attempts");
+			}
 
-            packet = ack.getDatagramPacket();
-            socket.send(packet);
+			packet = ack.getDatagramPacket();
+			socket.send(packet);
 
-            String payload = PacketUtils.getPayloadFromPacket(packet);
-            System.out.println("[PacketSender] Sent: \"" + payload + "\"");
-        } catch (IOException e) {
-            active = false;
-            exception = e;
-        } catch (InterruptedException e) {
-            exception = e;
-        }
-    }
+			String payload = PacketUtils.getPayloadFromPacket(packet);
+			System.out.println("[PacketSender] Sent: \"" + payload + "\"");
+		} catch (IOException e) {
+			active = false;
+			exception = e;
+		} catch (InterruptedException e) {
+			exception = e;
+		}
+	}
 
-    @Override
-    public final void run() {
-        connectionSetup();
+	@Override
+	public final void run() {
+		connectionSetup();
 
-        boolean closing = false;
-        int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
-        int attempts = 0;
+		boolean closing = false;
+		int maxAttempts = Protocol.CONNECTION_ATTEMPTS;
+		int attempts = 0;
 
-        timer.restart();
+		timer.restart();
 
-        try {
-            while (active && !Thread.interrupted()) {
-                boolean timeout = timer.timedOut();
+		try {
+			while (active && !Thread.interrupted()) {
+				boolean timeout = timer.timedOut();
 
-                if (timeout && !window.isEmpty()) {
-                    ++attempts;
+				if (timeout && !window.isEmpty()) {
+					++attempts;
 
-                    if (attempts < maxAttempts) {
-                        System.out.println("[PacketSender] "
-                                + "Timeout, resending all in window");
+					if (attempts < maxAttempts) {
+						System.out.println("[PacketSender] "
+								+ "Timeout, resending all in window");
 
-                        for (RIPPacket ripPacket : window) {
-                            socket.send(ripPacket.getDatagramPacket());
-                        }
-                    } else {
-                        System.out.println("[PacketSender] "
-                                + "Closing, reached max connection attempts");
-                        throw new SocketException(
-                                "Reached max connection attempts");
-                    }
+						for (RIPPacket ripPacket : window) {
+							socket.send(ripPacket.getDatagramPacket());
+						}
+					} else {
+						System.out.println("[PacketSender] "
+								+ "Closing, reached max connection attempts");
+						throw new SocketException(
+								"Reached max connection attempts");
+					}
 
-                    timer.restart();
-                } else if (timeout) {
-                    timer.restart();
-                } else if (!outPacketBuffer.isEmpty()
-                        && window.remainingCapacity() > 0) {
+					timer.restart();
+				} else if (timeout) {
+					timer.restart();
+				} else if (!outPacketBuffer.isEmpty()
+						&& window.remainingCapacity() > 0) {
 
-                    attempts = 0;
+					attempts = 0;
 
-                    RIPPacket ripPacket = outPacketBuffer.take();
+					RIPPacket ripPacket = outPacketBuffer.take();
 
-                    if (window.isEmpty()) {
-                        timer.restart();
-                    }
+					if (window.isEmpty()) {
+						timer.restart();
+					}
 
-                    window.put(ripPacket);
+					window.put(ripPacket);
 
-                    DatagramPacket packet = ripPacket.getDatagramPacket();
-                    socket.send(packet);
+					DatagramPacket packet = ripPacket.getDatagramPacket();
+					socket.send(packet);
 
-                    String payload = PacketUtils.getPayloadFromPacket(packet);
-                    System.out.println("[PacketSender] Sent: \"" + payload
-                            + "\"");
+					String payload = PacketUtils.getPayloadFromPacket(packet);
+					System.out.println("[PacketSender] Sent: \"" + payload
+							+ "\"");
 
-                    Signal signal = ripPacket.getSignal();
+					Signal signal = ripPacket.getSignal();
 
-                    switch (signal) {
-                    case FIN:
-                        closing = true;
-                        break;
-                    case ACK:
-                        if (closing) {
-                            System.out.println("[PacketSender] Time wait");
-                            synchronized (window) {
-                                window.wait(Protocol.FIN_TIME_WAIT);
-                            }
+					switch (signal) {
+					case FIN:
+						closing = true;
+						break;
+					case ACK:
+						if (closing) {
+							System.out.println("[PacketSender] Time wait");
 
-                            if (outPacketBuffer.peek() == null) {
-                                throw new SocketException("Connection closed");
-                            }
-                        }
-                        break;
-                    default:
-                        closing = false;
-                        break;
-                    }
-                } else {
-                    Thread.sleep(WAITTIME_IN_MILLIS);
-                }
-            }
-        } catch (IOException e) {
-            active = false;
-            exception = e;
-        } catch (InterruptedException e) {
-            exception = e;
-        }
+							synchronized (window) {
+								window.wait(Protocol.FIN_TIME_WAIT);
+							}
 
-        packetMakerThread.setActive(false);
-        packetMakerThread.interrupt();
+							if (outPacketBuffer.peek() == null) {
+								throw new SocketException("Connection closed");
+							}
+						}
+						break;
+					default:
+						closing = false;
+						break;
+					}
+				} else {
+					Thread.sleep(WAITTIME_IN_MILLIS);
+				}
+			}
+		} catch (IOException e) {
+			active = false;
+			exception = e;
+		} catch (InterruptedException e) {
+			exception = e;
+		}
 
-        System.out.println("[PacketSender] Connection successfully closed");
-        socket.close();
-    }
+		packetMakerThread.setActive(false);
+		packetMakerThread.interrupt();
+
+		System.out.println("[PacketSender] Connection successfully closed");
+		socket.close();
+	}
 }

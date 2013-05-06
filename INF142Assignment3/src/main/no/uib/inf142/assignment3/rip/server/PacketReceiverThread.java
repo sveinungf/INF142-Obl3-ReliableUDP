@@ -12,45 +12,45 @@ import no.uib.inf142.assignment3.rip.common.RIPThread;
 
 public class PacketReceiverThread extends RIPThread {
 
-    private BlockingQueue<DatagramPacket> packetBuffer;
-    private DatagramSocket socket;
-    private RIPThread ackSenderThread;
+	private BlockingQueue<DatagramPacket> packetBuffer;
+	private DatagramSocket socket;
+	private RIPThread ackSenderThread;
 
-    public PacketReceiverThread(final DatagramSocket socket,
-            final BlockingQueue<DatagramPacket> packetBuffer,
-            final RIPThread ackSenderThread) throws SocketException {
+	public PacketReceiverThread(final DatagramSocket socket,
+			final BlockingQueue<DatagramPacket> packetBuffer,
+			final RIPThread ackSenderThread) throws SocketException {
 
-        this.packetBuffer = packetBuffer;
-        this.socket = socket;
-        this.ackSenderThread = ackSenderThread;
-        socket.setSoTimeout((int) Protocol.SERVER_TIMEOUT);
-    }
+		this.packetBuffer = packetBuffer;
+		this.socket = socket;
+		this.ackSenderThread = ackSenderThread;
+		socket.setSoTimeout((int) Protocol.SERVER_TIMEOUT);
+	}
 
-    @Override
-    public final void run() {
-        while (active) {
-            byte[] byteData = new byte[Protocol.PACKETDATA_LENGTH];
-            DatagramPacket packet = new DatagramPacket(byteData,
-                    byteData.length);
+	@Override
+	public final void run() {
+		while (active) {
+			byte[] byteData = new byte[Protocol.PACKETDATA_LENGTH];
+			DatagramPacket packet = new DatagramPacket(byteData,
+					byteData.length);
 
-            try {
-                socket.receive(packet);
-                String data = new String(packet.getData(), 0,
-                        packet.getLength());
-                System.out.println("[PacketReceiver] Received: \"" + data
-                        + "\"");
+			try {
+				socket.receive(packet);
+				String data = new String(packet.getData(), 0,
+						packet.getLength(), Protocol.CHARSET);
+				System.out.println("[PacketReceiver] Received: \"" + data
+						+ "\"");
 
-                packetBuffer.put(packet);
-            } catch (SocketTimeoutException e) {
-                ackSenderThread.setActive(false);
-                ackSenderThread.interrupt();
+				packetBuffer.put(packet);
+			} catch (SocketTimeoutException e) {
+				ackSenderThread.setActive(false);
+				ackSenderThread.interrupt();
 
-                active = false;
-                exception = e;
-            } catch (IOException | InterruptedException e) {
-                active = false;
-                exception = e;
-            }
-        }
-    }
+				active = false;
+				exception = e;
+			} catch (IOException | InterruptedException e) {
+				active = false;
+				exception = e;
+			}
+		}
+	}
 }
