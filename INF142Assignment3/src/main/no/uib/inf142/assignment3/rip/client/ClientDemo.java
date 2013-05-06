@@ -22,10 +22,9 @@ public class ClientDemo {
 
 			String input = "";
 			System.out.println("Enter strings to send to server, "
-					+ "\"exit\" to stop.");
+					+ "\"exit\" to stop.\n");
 
 			while (!"exit".equals(input)) {
-				System.out.print("Input: ");
 				input = in.nextLine();
 
 				if (!"exit".equals(input)) {

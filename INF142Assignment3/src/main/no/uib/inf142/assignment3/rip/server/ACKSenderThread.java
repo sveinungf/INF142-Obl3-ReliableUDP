@@ -172,7 +172,7 @@ public class ACKSenderThread extends RIPThread {
                     break;
                 }
             } catch (InvalidPacketException e) {
-                System.out.println("[ACKSender] " + e.getMessage());
+                System.err.println("[ACKSender] " + e.getMessage());
             } catch (IOException | InterruptedException
                     | TooShortPacketLengthException e) {
 

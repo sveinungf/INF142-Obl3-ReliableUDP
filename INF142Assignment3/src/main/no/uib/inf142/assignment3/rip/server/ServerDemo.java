@@ -4,23 +4,25 @@ import java.net.SocketException;
 
 import no.uib.inf142.assignment3.rip.common.Protocol;
 
-public class ServerMain {
+public class ServerDemo {
 
 	public static void main(final String[] args) {
-	    boolean alive = true;
+		boolean alive = true;
 		try {
 			RIPServerSocket ripserver = new RIPServerSocket(
 					Protocol.SERVER_LISTENING_PORT,
 					Protocol.RELAY_LISTENING_PORT);
 
+			System.out.println("Waiting for client to connect...");
+
 			while (alive) {
 				System.out.println("RIPServerSocket got: "
 						+ ripserver.receive());
 			}
-			
+
 			ripserver.close();
 		} catch (SocketException e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		}
 	}
 }

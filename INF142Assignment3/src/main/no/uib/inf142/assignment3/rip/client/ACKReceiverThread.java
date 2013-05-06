@@ -120,11 +120,11 @@ public class ACKReceiverThread extends RIPThread {
 					removePacketsFromWindow(sequence);
 					expectedSequence = sequence + 1;
 				} else {
-					System.out.println("[ACKReceiver] Received unexpected: \""
+					System.err.println("[ACKReceiver] Received unexpected: \""
 							+ payload + "\"");
 				}
 			} catch (InvalidPacketException e) {
-				System.out.println("[ACKReceiver] " + e.getMessage()
+				System.err.println("[ACKReceiver] " + e.getMessage()
 						+ ", ignored");
 			} catch (IOException e) {
 				active = false;
